@@ -1,0 +1,2 @@
+[console_scripts]
+argusloom = argusloom.cli:app

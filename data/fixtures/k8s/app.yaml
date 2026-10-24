@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: nginx:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-svc
+spec:
+  selector:
+    app: web
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-ingress
+spec:
+  rules:
+    - host: app.example.com
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-config
+data:
+  LOG_LEVEL: INFO
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: web-secret
+stringData:
+  token: demo
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: web-sa
