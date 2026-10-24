@@ -43,3 +43,27 @@ def test_enrich_graph_with_cti_attaches_references() -> None:
 
     db_entry = next(node for node in enriched.nodes if node.id == "aws_db_instance.db")
     assert db_entry.metadata["cti"]
+
+
+def test_enrich_graph_with_cti_populates_typed_fields_for_network_nodes() -> None:
+    graph = Graph(
+        nodes=[
+            GraphNode(
+                id="public_ingress",
+                name="public-ingress",
+                kind=NodeKind.NETWORK,
+                source="fixture",
+                criticality=Criticality.HIGH,
+                exposure=0.9,
+            )
+        ],
+        edges=[],
+    )
+
+    enriched = enrich_graph_with_cti(graph)
+    entry = enriched.nodes[0]
+
+    assert entry.metadata["cti"]
+    assert entry.mitre_techniques
+    assert entry.cves
+    assert entry.cvss_max > 0
