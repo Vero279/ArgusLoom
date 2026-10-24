@@ -1,0 +1,122 @@
+[
+  {
+    "id": "CVE-2018-16522",
+    "description": "AWS FreeRTOS through 1.3.1 has an uninitialized pointer free in SOCKETS_SetSockOpt.",
+    "cvss_score": 8.1,
+    "severity": "HIGH",
+    "published": "2018-12-06",
+    "keywords": ["freertos", "socket", "memory"]
+  },
+  {
+    "id": "CVE-2018-16523",
+    "description": "AWS FreeRTOS and FreeRTOS+TCP allow division by zero while parsing TCP options.",
+    "cvss_score": 7.4,
+    "severity": "HIGH",
+    "published": "2018-12-06",
+    "keywords": ["freertos", "tcp", "network"]
+  },
+  {
+    "id": "CVE-2018-16524",
+    "description": "AWS FreeRTOS and FreeRTOS+TCP allow information disclosure while parsing TCP options.",
+    "cvss_score": 5.9,
+    "severity": "MEDIUM",
+    "published": "2018-12-06",
+    "keywords": ["freertos", "tcp", "disclosure"]
+  },
+  {
+    "id": "CVE-2018-16525",
+    "description": "AWS FreeRTOS and FreeRTOS+TCP contain a buffer overflow while parsing DNS and LLMNR packets.",
+    "cvss_score": 8.1,
+    "severity": "HIGH",
+    "published": "2018-12-06",
+    "keywords": ["freertos", "dns", "network"]
+  },
+  {
+    "id": "CVE-2018-16526",
+    "description": "AWS FreeRTOS and FreeRTOS+TCP contain a buffer overflow in protocol checksum processing.",
+    "cvss_score": 8.1,
+    "severity": "HIGH",
+    "published": "2018-12-06",
+    "keywords": ["freertos", "network", "checksum"]
+  },
+  {
+    "id": "CVE-2018-16527",
+    "description": "AWS FreeRTOS and FreeRTOS+TCP allow information disclosure while parsing ICMP packets.",
+    "cvss_score": 5.9,
+    "severity": "MEDIUM",
+    "published": "2018-12-06",
+    "keywords": ["freertos", "icmp", "network"]
+  },
+  {
+    "id": "CVE-2018-16528",
+    "description": "AWS FreeRTOS through 1.3.1 allows remote code execution through TLS context corruption.",
+    "cvss_score": 8.1,
+    "severity": "HIGH",
+    "published": "2018-12-06",
+    "keywords": ["freertos", "tls", "network"]
+  },
+  {
+    "id": "CVE-2018-16598",
+    "description": "AWS FreeRTOS accepts DNS responses without confirming that a matching request was sent.",
+    "cvss_score": 5.9,
+    "severity": "MEDIUM",
+    "published": "2018-12-06",
+    "keywords": ["freertos", "dns", "network"]
+  },
+  {
+    "id": "CVE-2018-16599",
+    "description": "AWS FreeRTOS and FreeRTOS+TCP allow information disclosure while parsing NBNS packets.",
+    "cvss_score": 5.9,
+    "severity": "MEDIUM",
+    "published": "2018-12-06",
+    "keywords": ["freertos", "nbns", "network"]
+  },
+  {
+    "id": "CVE-2018-16600",
+    "description": "AWS FreeRTOS and FreeRTOS+TCP allow information disclosure while parsing ARP packets.",
+    "cvss_score": 5.9,
+    "severity": "MEDIUM",
+    "published": "2018-12-06",
+    "keywords": ["freertos", "arp", "network"]
+  },
+  {
+    "id": "CVE-2018-16601",
+    "description": "A crafted IP header in AWS FreeRTOS can trigger a full memory copy, causing denial of service.",
+    "cvss_score": 8.1,
+    "severity": "HIGH",
+    "published": "2018-12-06",
+    "keywords": ["freertos", "ip", "memory"]
+  },
+  {
+    "id": "CVE-2018-16602",
+    "description": "AWS FreeRTOS and FreeRTOS+TCP allow information disclosure while parsing DHCP responses.",
+    "cvss_score": 5.9,
+    "severity": "MEDIUM",
+    "published": "2018-12-06",
+    "keywords": ["freertos", "dhcp", "network"]
+  },
+  {
+    "id": "CVE-2018-16603",
+    "description": "AWS FreeRTOS and FreeRTOS+TCP allow data disclosure through out-of-bounds TCP port access.",
+    "cvss_score": 5.9,
+    "severity": "MEDIUM",
+    "published": "2018-12-06",
+    "keywords": ["freertos", "tcp", "disclosure"]
+  },
+  {
+    "id": "CVE-2017-9450",
+    "description": "AWS CloudFormation bootstrap tools before 1.4-19.10 allow local users to execute code as root.",
+    "cvss_score": 7.8,
+    "severity": "HIGH",
+    "published": "2017-06-30",
+    "keywords": ["aws", "cloudformation", "root"]
+  },
+  {
+    "id": "CVE-2021-31571",
+    "description": "Amazon FreeRTOS before 10.4.3 has an integer overflow in queue creation.",
+    "cvss_score": 9.8,
+    "severity": "CRITICAL",
+    "published": "2021-04-22",
+    "keywords": ["freertos", "integer overflow", "queue"]
+  }
+]

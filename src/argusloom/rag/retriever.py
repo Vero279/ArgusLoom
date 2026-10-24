@@ -37,15 +37,12 @@ class CTIRetriever:
     def index_graph(self, graph: Graph) -> None:
         docs: list[CTIDocument] = []
         for node in graph.nodes:
-            tags = (
-                ", ".join(node.mitre_techniques)
-                if node.mitre_techniques
-                else "no att&ck tags"
-            )
+            tags = ", ".join(node.mitre_techniques) or "no att&ck tags"
+            cves = ", ".join(node.cves) or "no cve tags"
             docs.append(
                 CTIDocument(
                     id=node.id,
-                    text=f"{node.name} ({node.kind.value}) — {tags}",
+                    text=f"{node.name} ({node.kind.value}) — {tags}; {cves}",
                     metadata={"source": "node", "kind": node.kind.value},
                 )
             )

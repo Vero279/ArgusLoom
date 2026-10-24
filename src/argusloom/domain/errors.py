@@ -17,3 +17,7 @@ class NodeNotFound(ArgusLoomError):
 
 class IngestionError(ArgusLoomError):
     """Raised when ingestion fails to parse or normalize input data."""
+
+
+class CTIError(ArgusLoomError):
+    """Raised when a CTI provider cannot return or process intelligence."""

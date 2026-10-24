@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,7 +25,13 @@ class Settings(BaseSettings):
     app_name: str = "argusloom"
     argus_use_mock_llm: bool = Field(default=True)
     use_mock_llm: bool | None = None
-    argus_use_mock_nvd: bool = Field(default=True)
+    use_mock_nvd: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("ARGUS_USE_MOCK_NVD", "argus_use_mock_nvd"),
+    )
+    nvd_cache_ttl_days: int = 7
+    nvd_api_key: str = ""
+    nvd_timeout_seconds: int = 10
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
     log_level: str = Field(default="INFO")
 
@@ -36,6 +42,11 @@ class Settings(BaseSettings):
             if self.use_mock_llm is not None
             else self.argus_use_mock_llm
         )
+
+    @property
+    def argus_use_mock_nvd(self) -> bool:
+        """Backward-compatible name for the mock NVD setting."""
+        return self.use_mock_nvd
 
 
 @lru_cache(maxsize=1)

@@ -16,6 +16,7 @@ from argusloom.api.routes.analysis import (
     AttackPathsRequest,
     BlastRadiusResponse,
 )
+from argusloom.api.routes.cti import router as cti_router
 from argusloom.api.routes.rag import router as rag_router
 from argusloom.domain.enums import Criticality, NodeKind, StrideCategory
 from argusloom.domain.errors import NodeNotFound
@@ -94,6 +95,7 @@ def _load_graph_from_store() -> Graph:
 
 def create_app() -> FastAPI:
     app = FastAPI(title="ArgusLoom", version=__version__)
+    app.include_router(cti_router)
     app.include_router(rag_router)
 
     @app.exception_handler(NodeNotFound)

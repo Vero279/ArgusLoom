@@ -133,7 +133,7 @@ def _collect_typed_fields(intel: list[dict[str, Any]]) -> tuple[list[str], list[
 
 
 def enrich_graph_with_cti(graph: Graph) -> Graph:
-    """Attach a mock CTI layer to each node in the graph while populating typed fields."""
+    """Deprecated: Use CTIEnricher.enrich from cti.enrich instead; this function is kept for backward compatibility with F3-F7 tests."""
 
     enriched = Graph(nodes=deepcopy(graph.nodes), edges=deepcopy(graph.edges))
     for node in enriched.nodes:

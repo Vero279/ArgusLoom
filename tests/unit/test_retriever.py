@@ -15,6 +15,8 @@ def test_retriever_index_graph_query_returns_network_node(tmp_path) -> None:
                 source="fixture",
                 criticality=Criticality.HIGH,
                 exposure=0.9,
+                cves=["CVE-2018-16522"],
+                mitre_techniques=["T1190"],
             ),
             GraphNode(
                 id="iam_role",
@@ -35,6 +37,9 @@ def test_retriever_index_graph_query_returns_network_node(tmp_path) -> None:
 
     assert hits
     assert any(hit.metadata.get("kind") == "network" for hit in hits)
+    network_hit = next(hit for hit in hits if hit.id == "public_ingress")
+    assert "T1190" in network_hit.text
+    assert "CVE-2018-16522" in network_hit.text
 
 
 def test_retriever_query_returns_iam_node_for_privilege_prompt(tmp_path) -> None:
