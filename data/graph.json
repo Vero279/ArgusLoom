@@ -1,0 +1,86 @@
+{
+  "nodes": [
+    {
+      "id": "A",
+      "kind": "compute",
+      "name": "A",
+      "source": "fixture",
+      "criticality": "high",
+      "exposure": 0.6,
+      "metadata": {},
+      "stride": ["denial_of_service"],
+      "cves": [],
+      "mitre_techniques": ["T1078"],
+      "cvss_max": 5.0
+    },
+    {
+      "id": "B",
+      "kind": "network",
+      "name": "B",
+      "source": "fixture",
+      "criticality": "medium",
+      "exposure": 0.8,
+      "metadata": {},
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [],
+      "cvss_max": 8.0
+    },
+    {
+      "id": "C",
+      "kind": "data",
+      "name": "C",
+      "source": "fixture",
+      "criticality": "critical",
+      "exposure": 0.9,
+      "metadata": {},
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [],
+      "cvss_max": 9.0
+    },
+    {
+      "id": "D",
+      "kind": "external",
+      "name": "D",
+      "source": "fixture",
+      "criticality": "low",
+      "exposure": 0.4,
+      "metadata": {},
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": ["T1190"],
+      "cvss_max": 3.0
+    }
+  ],
+  "edges": [
+    {
+      "source": "A",
+      "target": "B",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {"mitre_technique": "T1078"}
+    },
+    {
+      "source": "B",
+      "target": "C",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "A",
+      "target": "D",
+      "relation": "network",
+      "confidence": 1.0,
+      "metadata": {"mitre_technique": "T1190"}
+    },
+    {
+      "source": "D",
+      "target": "C",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    }
+  ]
+}

@@ -5,7 +5,6 @@ from argusloom.domain.enums import Criticality, NodeKind
 from argusloom.domain.graph import Graph, GraphEdge, GraphNode
 from argusloom.workflow.remediation import build_remediation_plan
 
-
 client = TestClient(app)
 
 
@@ -19,7 +18,9 @@ def test_build_remediation_plan_prioritizes_high_risk_exposure() -> None:
                 source="kubernetes",
                 criticality=Criticality.HIGH,
                 exposure=0.9,
-                metadata={"cti": [{"source": "MITRE ATT&CK", "title": "Ingress exposure"}]},
+                metadata={
+                    "cti": [{"source": "MITRE ATT&CK", "title": "Ingress exposure"}]
+                },
                 stride=["information_disclosure", "denial_of_service"],
             ),
             GraphNode(
@@ -33,14 +34,23 @@ def test_build_remediation_plan_prioritizes_high_risk_exposure() -> None:
                 stride=["tampering", "information_disclosure"],
             ),
         ],
-        edges=[GraphEdge(source="k8s_ingress.web", target="aws_db_instance.db", relation="depends_on")],
+        edges=[
+            GraphEdge(
+                source="k8s_ingress.web",
+                target="aws_db_instance.db",
+                relation="depends_on",
+            )
+        ],
     )
 
     plan = build_remediation_plan(graph)
 
     assert plan
     assert plan[0]["node_id"] == "k8s_ingress.web"
-    assert any("tls" in action.lower() or "ingress" in action.lower() for action in plan[0]["actions"])
+    assert any(
+        "tls" in action.lower() or "ingress" in action.lower()
+        for action in plan[0]["actions"]
+    )
 
 
 def test_remediation_endpoint() -> None:
@@ -53,7 +63,9 @@ def test_remediation_endpoint() -> None:
                 "source": "kubernetes",
                 "criticality": "high",
                 "exposure": 0.9,
-                "metadata": {"cti": [{"source": "MITRE ATT&CK", "title": "Ingress exposure"}]},
+                "metadata": {
+                    "cti": [{"source": "MITRE ATT&CK", "title": "Ingress exposure"}]
+                },
                 "stride": ["information_disclosure", "denial_of_service"],
             }
         ],
@@ -66,3 +78,27 @@ def test_remediation_endpoint() -> None:
     body = response.json()
     assert "plan" in body
     assert body["plan"][0]["node_id"] == "k8s_ingress.web"
+
+
+def test_remediation_dispatch_uses_network_kind_enum() -> None:
+    graph = Graph(
+        nodes=[
+            GraphNode(
+                id="public_ingress",
+                kind=NodeKind.NETWORK,
+                name="public-ingress",
+                source="fixture",
+                criticality=Criticality.HIGH,
+                exposure=0.9,
+            )
+        ],
+        edges=[],
+    )
+
+    plan = build_remediation_plan(graph)
+
+    assert plan
+    assert any(
+        "network" in action.lower() or "public" in action.lower()
+        for action in plan[0]["actions"]
+    )

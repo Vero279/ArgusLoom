@@ -2,15 +2,29 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI
+import structlog
+from fastapi import FastAPI, Query
+from fastapi.responses import JSONResponse
 
 from argusloom import __version__
 from argusloom.analysis.threat_model import analyze_graph
+from argusloom.api.routes.analysis import (
+    AttackPathResponse,
+    AttackPathsRequest,
+    BlastRadiusResponse,
+)
 from argusloom.domain.enums import Criticality, NodeKind, StrideCategory
+from argusloom.domain.errors import NodeNotFound
 from argusloom.domain.graph import Graph, GraphEdge, GraphNode
+from argusloom.graph.blast_radius import compute_blast_radius
+from argusloom.graph.pathfinding import find_attack_paths
+from argusloom.graph.store import GraphStore
 from argusloom.workflow.remediation import build_remediation_plan
+
+logger = structlog.get_logger()
 
 
 def _parse_stride(value: Any) -> StrideCategory | None:
@@ -48,6 +62,9 @@ def _graph_from_payload(payload: dict[str, Any]) -> Graph:
                 exposure=float(item.get("exposure", 0.0)),
                 metadata=dict(item.get("metadata", {}) or {}),
                 stride=stride,
+                cves=list(item.get("cves", []) or []),
+                mitre_techniques=list(item.get("mitre_techniques", []) or []),
+                cvss_max=float(item.get("cvss_max", 0.0)),
             )
         )
 
@@ -66,12 +83,25 @@ def _graph_from_payload(payload: dict[str, Any]) -> Graph:
     return Graph(nodes=nodes, edges=edges)
 
 
+def _load_graph_from_store() -> Graph:
+    fixture_path = Path("data/graph.json")
+    if not fixture_path.exists():
+        raise FileNotFoundError(f"Graph fixture not found at {fixture_path}")
+    logger.info("graph_store.load", path=str(fixture_path))
+    return GraphStore(fixture_path).load()
+
+
 def create_app() -> FastAPI:
     app = FastAPI(title="ArgusLoom", version=__version__)
 
+    @app.exception_handler(NodeNotFound)
+    async def node_not_found_handler(request: Any, exc: NodeNotFound) -> JSONResponse:
+        logger.info("node_not_found", node_id=exc.node_id)
+        return JSONResponse(status_code=404, content={"detail": str(exc)})
+
     @app.get("/health")
     def health() -> dict[str, Any]:
-        return {"status": "ok", "version": __version__, "phase": 4}
+        return {"status": "ok", "version": __version__, "phase": 6}
 
     @app.get("/")
     def root() -> dict[str, str]:
@@ -98,6 +128,63 @@ def create_app() -> FastAPI:
         graph = _graph_from_payload(payload)
         plan = build_remediation_plan(graph)
         return {"plan": plan}
+
+    @app.get("/nodes/{node_id}/blast-radius")
+    def blast_radius_endpoint(
+        node_id: str,
+        max_depth: int = Query(default=3, ge=0, le=10),
+        weighted: bool = True,
+    ) -> BlastRadiusResponse:
+        graph = _load_graph_from_store()
+        result = compute_blast_radius(
+            graph, analyze_graph(graph), node_id, max_depth=max_depth, weighted=weighted
+        )
+        logger.info(
+            "blast_radius.computed",
+            node_id=node_id,
+            n_nodes=len(result.nodes),
+            weighted=weighted,
+        )
+        return BlastRadiusResponse(
+            root_id=result.root_id,
+            nodes=[node.to_dict() for node in result.nodes],
+            edges=[edge.to_dict() for edge in result.edges],
+            depth_map=result.depth_map,
+            risk_score=result.risk_score,
+            max_depth=result.max_depth,
+        )
+
+    @app.post("/attack-paths")
+    def attack_paths_endpoint(payload: AttackPathsRequest) -> AttackPathResponse:
+        graph = _load_graph_from_store()
+        paths = find_attack_paths(
+            graph,
+            payload.source_id,
+            payload.target_id,
+            strategy=payload.strategy,
+            top_k=payload.top_k,
+        )
+        logger.info(
+            "attack_paths.computed",
+            source_id=payload.source_id,
+            target_id=payload.target_id,
+            count=len(paths),
+        )
+        return AttackPathResponse(
+            source_id=payload.source_id,
+            target_id=payload.target_id,
+            strategy=payload.strategy,
+            paths=[
+                {
+                    "nodes": path.nodes,
+                    "edges": [edge.to_dict() for edge in path.edges],
+                    "score": path.score,
+                    "mitre_chain": path.mitre_chain,
+                    "length": path.length,
+                }
+                for path in paths
+            ],
+        )
 
     return app
 

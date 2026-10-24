@@ -36,6 +36,9 @@ class GraphNode:
     exposure: float = 0.0
     metadata: dict[str, Any] = field(default_factory=dict)
     stride: list[StrideCategory] = field(default_factory=list)
+    cves: list[str] = field(default_factory=list)
+    mitre_techniques: list[str] = field(default_factory=list)
+    cvss_max: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -47,6 +50,9 @@ class GraphNode:
             "exposure": self.exposure,
             "metadata": self.metadata,
             "stride": [item.value for item in self.stride],
+            "cves": list(self.cves),
+            "mitre_techniques": list(self.mitre_techniques),
+            "cvss_max": self.cvss_max,
         }
 
 
@@ -69,7 +75,9 @@ class Graph:
 
     def add_edge(self, edge: GraphEdge) -> None:
         if not any(
-            existing.source == edge.source and existing.target == edge.target and existing.relation == edge.relation
+            existing.source == edge.source
+            and existing.target == edge.target
+            and existing.relation == edge.relation
             for existing in self.edges
         ):
             self.edges.append(edge)

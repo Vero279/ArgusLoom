@@ -7,7 +7,6 @@ from typing import Any
 from argusloom.analysis.threat_model import analyze_graph
 from argusloom.domain.graph import Graph
 
-
 CRITICALITY_WEIGHT = {
     "low": 1.0,
     "medium": 2.0,
@@ -24,24 +23,25 @@ def _default_actions(node: Any) -> list[str]:
 
 
 def _actions_for_node(node: Any) -> list[str]:
-    kind = str(getattr(node, "kind", "")).lower()
+    kind = getattr(node, "kind", "")
+    normalized_kind = str(kind.value if hasattr(kind, "value") else kind).lower()
     node_id = str(getattr(node, "id", "")).lower()
 
-    if "ingress" in node_id or kind == "network":
+    if "ingress" in node_id or normalized_kind == "network":
         return [
             "Restrict public ingress and validate origin rules for externally reachable services.",
             "Enforce TLS 1.2+ and rate limiting on the entry point to reduce information disclosure and denial-of-service risk.",
             "Add workload identity and mTLS verification before trusted downstream dependencies are reached.",
         ]
 
-    if "db" in node_id or kind in {"data", "storage"}:
+    if "db" in node_id or normalized_kind in {"data", "storage"}:
         return [
             "Encrypt data at rest and in transit for the storage boundary.",
             "Review access policies and isolate sensitive data stores from unrestricted attachment paths.",
             "Enable audit logging and rotate credentials to reduce tampering and exfiltration risk.",
         ]
 
-    if "role" in node_id or kind == "iam":
+    if "role" in node_id or normalized_kind == "iam":
         return [
             "Reduce privilege scope and enforce least privilege for the identity model.",
             "Separate responsibilities and verify role assumptions for sensitive workloads.",
@@ -65,7 +65,11 @@ def build_remediation_plan(graph: Graph) -> list[dict[str, Any]]:
         if finding is not None:
             risk_score += float(finding.risk_score)
 
-        if "ingress" in str(node.id).lower() or getattr(node, "kind", None) == "network":
+        kind_value = getattr(node, "kind", None)
+        normalized_kind = str(
+            kind_value.value if hasattr(kind_value, "value") else kind_value
+        ).lower()
+        if "ingress" in str(node.id).lower() or normalized_kind == "network":
             risk_score += 2.0
 
         prioritized.append(
@@ -78,5 +82,7 @@ def build_remediation_plan(graph: Graph) -> list[dict[str, Any]]:
             }
         )
 
-    prioritized.sort(key=lambda item: (item["risk_score"], item["exposure"]), reverse=True)
+    prioritized.sort(
+        key=lambda item: (item["risk_score"], item["exposure"]), reverse=True
+    )
     return prioritized
