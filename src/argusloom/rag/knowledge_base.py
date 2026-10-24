@@ -39,12 +39,24 @@ class KnowledgeBase:
             KnowledgeEntry(
                 title="IAM least privilege",
                 content="Apply least privilege, role separation, and permission boundaries to prevent privilege escalation and spoofing across workloads.",
-                keywords=["iam", "privilege", "spoofing", "least_privilege", "escalation"],
+                keywords=[
+                    "iam",
+                    "privilege",
+                    "spoofing",
+                    "least_privilege",
+                    "escalation",
+                ],
             ),
             KnowledgeEntry(
                 title="Service resilience and monitoring",
                 content="Deploy rate limits, circuit breakers, logging, and anomaly detection to reduce denial of service and accelerate incident response.",
-                keywords=["network", "dos", "denial_of_service", "logging", "monitoring"],
+                keywords=[
+                    "network",
+                    "dos",
+                    "denial_of_service",
+                    "logging",
+                    "monitoring",
+                ],
             ),
         ]
         self.entries = list(entries) if entries is not None else default_entries
@@ -52,10 +64,16 @@ class KnowledgeBase:
     def add_entry(self, entry: KnowledgeEntry) -> None:
         self.entries.append(entry)
 
-    def add_document(self, title: str, content: str, keywords: list[str] | None = None) -> None:
-        self.add_entry(KnowledgeEntry(title=title, content=content, keywords=list(keywords or [])))
+    def add_document(
+        self, title: str, content: str, keywords: list[str] | None = None
+    ) -> None:
+        self.add_entry(
+            KnowledgeEntry(title=title, content=content, keywords=list(keywords or []))
+        )
 
-    def search(self, asset_type: str | None = None, threat: str | None = None) -> list[str]:
+    def search(
+        self, asset_type: str | None = None, threat: str | None = None
+    ) -> list[str]:
         return search_knowledge(self, asset_type=asset_type, threat=threat)
 
 
@@ -67,7 +85,9 @@ def _tokenize(value: str) -> set[str]:
     return {token for token in tokens if token}
 
 
-def search_knowledge(kb: KnowledgeBase, asset_type: str | None = None, threat: str | None = None) -> list[str]:
+def search_knowledge(
+    kb: KnowledgeBase, asset_type: str | None = None, threat: str | None = None
+) -> list[str]:
     """Return ranked knowledge snippets for a given asset type and threat theme."""
 
     query_tokens: set[str] = set()
@@ -78,7 +98,9 @@ def search_knowledge(kb: KnowledgeBase, asset_type: str | None = None, threat: s
 
     scored: list[tuple[int, str]] = []
     for entry in kb.entries:
-        combined = _tokenize(entry.title) | _tokenize(entry.content) | set(entry.keywords)
+        combined = (
+            _tokenize(entry.title) | _tokenize(entry.content) | set(entry.keywords)
+        )
         match_score = len(query_tokens & combined)
         if not match_score and not query_tokens:
             match_score = 1
