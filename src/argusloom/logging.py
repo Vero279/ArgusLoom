@@ -22,7 +22,12 @@ def setup_logging(level: str = "INFO") -> None:
         wrapper_class=structlog.stdlib.BoundLogger,
         cache_logger_on_first_use=True,
     )
-    logging.basicConfig(level=log_level, format="%(message)s")
+
+    root_logger = logging.getLogger()
+    for handler in list(root_logger.handlers):
+        root_logger.removeHandler(handler)
+        handler.close()
+    logging.basicConfig(level=log_level, format="%(message)s", force=True)
 
 
 def get_logger(name: str) -> structlog.BoundLogger:
