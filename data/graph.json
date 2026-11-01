@@ -158,7 +158,15 @@
         "attributes": {
           "function_name": "argus-handler",
           "role": "${aws_iam_role.lambda_exec.arn}",
-          "runtime": "python3.11"
+          "runtime": "python3.11",
+          "environment": [
+            {
+              "variables": {
+                "LOGS_BUCKET": "${aws_s3_bucket.logs.bucket}"
+              },
+              "__is_block__": true
+            }
+          ]
         }
       },
       "stride": [
@@ -186,7 +194,10 @@
           "identifier": "argus-db",
           "allocated_storage": 20,
           "engine": "postgres",
-          "instance_class": "db.t3.micro"
+          "instance_class": "db.t3.micro",
+          "vpc_security_group_ids": [
+            "${aws_security_group.app.id}"
+          ]
         }
       },
       "stride": [
@@ -408,6 +419,13 @@
     {
       "source": "aws_iam_role.lambda_exec",
       "target": "aws_lambda_function.handler",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_security_group.app",
+      "target": "aws_db_instance.db",
       "relation": "depends_on",
       "confidence": 1.0,
       "metadata": {}

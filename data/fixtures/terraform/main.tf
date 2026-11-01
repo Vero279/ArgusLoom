@@ -46,13 +46,19 @@ resource "aws_lambda_function" "handler" {
   function_name = "argus-handler"
   role          = aws_iam_role.lambda_exec.arn
   runtime       = "python3.11"
+  environment {
+    variables = {
+      LOGS_BUCKET = aws_s3_bucket.logs.bucket
+    }
+  }
 }
 
 resource "aws_db_instance" "db" {
-  identifier     = "argus-db"
+  identifier        = "argus-db"
   allocated_storage = 20
-  engine         = "postgres"
-  instance_class = "db.t3.micro"
+  engine            = "postgres"
+  instance_class    = "db.t3.micro"
+  vpc_security_group_ids = [aws_security_group.app.id]
 }
 
 resource "aws_api_gateway_rest_api" "api" {

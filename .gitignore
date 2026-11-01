@@ -6,3 +6,7 @@ __pycache__/
 .env
 data/chroma/
 data/cti_cache.db
+import json
+check_graph.py
+show_edges.py
+regenerate.py
