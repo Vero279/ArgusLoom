@@ -37,6 +37,8 @@ def compute_blast_radius(
     for edge in sorted(
         graph.edges, key=lambda item: (item.source, item.target, item.relation)
     ):
+        if edge.source not in graph_nodes or edge.target not in graph_nodes:
+            continue
         adjacency[edge.source].append(edge)
 
     findings_by_id = {finding.node_id: finding for finding in findings}

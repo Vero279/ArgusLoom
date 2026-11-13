@@ -11,6 +11,40 @@ argusloom demo
 argusloom serve  # ou: argusloom export-openapi
 ```
 
+## Frontend
+
+Com a API em execução, inicia o dashboard acessível:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Consulta a lista de critérios WCAG e as instruções de validação em [frontend/README.md](./frontend/README.md).
+
+## Cenários de demonstração
+
+| Cenário | Input | Nós/arestas esperados | Demonstração |
+|---|---|---:|---|
+| A — Terraform only | `data/fixtures/scenarios/A_terraform_only/main.tf` | ≥5 nós / ≥3 arestas | Superfície AWS exposta, grupos de segurança e recursos ligados |
+| B — Kubernetes only | `data/fixtures/scenarios/B_k8s_only/app.yaml` | ≥4 nós / ≥2 arestas | Relações Service/Deployment e Ingress exposto |
+| C — Híbrido | `data/fixtures/scenarios/C_hybrid/` | ≥12 nós / ≥6 arestas | Infraestrutura AWS e Kubernetes combinada, enriquecimento CTI |
+
+Gera os grafos offline com `python ingest.py --scenario A` (ou `B`/`C`).
+Para trocar o cenário servido pela API, execute `argusloom scenario A` (ou
+`B`/`C`) e atualize a página do dashboard. Consulte os grafos disponíveis com
+`argusloom scenario list`.
+
+The parser is identical for all scenarios; only the input fixtures differ.
+
+Com o backend e o frontend de desenvolvimento em execução, também é possível
+trocar de cenário pelos botões A/B/C no cabeçalho do dashboard. A CLI continua
+disponível com `argusloom scenario A` e a listagem com `argusloom scenario list`.
+Os endpoints de demonstração em `/dev/scenarios` são desativados em produção
+com `ARGUS_DEV_MODE=false`; nesse modo, o frontend mostra apenas
+“Cenário controlado por CLI”.
+
 ## Arquitetura
 
 A arquitetura detalhada está em [docs/architecture.md](docs/architecture.md).
@@ -75,7 +109,6 @@ tests/
 
 ## Limitações e trabalho futuro
 
-- Frontend em Cytoscape.js não foi incluído no MVP.
 - Retrofit de Pydantic nos endpoints antigos ficou fora do escopo da fase atual.
 - Multi-cloud, autenticação, e integração com produção real mais extensa não fazem parte do MVP.
 - CTI real em produção e orquestração mais robusta ficam como extensão natural após a tese e a defesa.

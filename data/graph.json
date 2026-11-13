@@ -1,16 +1,16 @@
 {
   "nodes": [
     {
-      "id": "aws_vpc.main",
+      "id": "aws_vpc.demo",
       "kind": "external",
-      "name": "main",
+      "name": "demo",
       "source": "terraform",
       "criticality": "low",
       "exposure": 0.2,
       "metadata": {
         "resource_type": "aws_vpc",
         "attributes": {
-          "cidr_block": "10.0.0.0/16"
+          "cidr_block": "10.10.0.0/16"
         }
       },
       "stride": [],
@@ -22,32 +22,21 @@
       "cvss_max": 4.0
     },
     {
-      "id": "aws_security_group.app",
+      "id": "aws_security_group.public",
       "kind": "network",
-      "name": "app",
+      "name": "public",
       "source": "terraform",
       "criticality": "medium",
       "exposure": 0.8,
       "metadata": {
         "resource_type": "aws_security_group",
         "attributes": {
-          "name": "app-sg",
+          "name": "demo-public-sg",
           "ingress": [
             {
-              "from_port": 80,
-              "to_port": 80,
+              "from_port": 443,
+              "to_port": 443,
               "protocol": "\"tcp\"",
-              "cidr_blocks": [
-                "\"0.0.0.0/0\""
-              ],
-              "__is_block__": true
-            }
-          ],
-          "egress": [
-            {
-              "from_port": 0,
-              "to_port": 0,
-              "protocol": "\"-1\"",
               "cidr_blocks": [
                 "\"0.0.0.0/0\""
               ],
@@ -62,10 +51,40 @@
       ],
       "cves": [],
       "mitre_techniques": [
+        "AML.T0049",
         "T1021",
         "T1041",
         "T1046",
         "T1071",
+        "T1190",
+        "T1486"
+      ],
+      "cvss_max": 9.0
+    },
+    {
+      "id": "aws_security_group.internal",
+      "kind": "network",
+      "name": "internal",
+      "source": "terraform",
+      "criticality": "medium",
+      "exposure": 0.4,
+      "metadata": {
+        "resource_type": "aws_security_group",
+        "attributes": {
+          "name": "demo-internal-sg"
+        }
+      },
+      "stride": [
+        "information_disclosure",
+        "elevation_of_privilege"
+      ],
+      "cves": [],
+      "mitre_techniques": [
+        "T1021",
+        "T1041",
+        "T1046",
+        "T1071",
+        "T1119",
         "T1190",
         "T1486"
       ],
@@ -81,11 +100,13 @@
       "metadata": {
         "resource_type": "aws_instance",
         "attributes": {
-          "ami": "ami-1234",
+          "ami": "ami-demo",
           "instance_type": "t3.micro",
           "vpc_security_group_ids": [
-            "${aws_security_group.app.id}"
-          ]
+            "${aws_security_group.public.id}"
+          ],
+          "iam_instance_profile": "${aws_iam_instance_profile.web.name}",
+          "user_data": "#!/bin/sh\\naws lambda invoke --function-name ${aws_lambda_function.handler.arn} /tmp/result\\naws s3 cp /tmp/result s3://${aws_s3_bucket.artifacts.bucket}/result"
         }
       },
       "stride": [],
@@ -99,41 +120,45 @@
       "cvss_max": 5.0
     },
     {
-      "id": "aws_s3_bucket.logs",
-      "kind": "storage",
-      "name": "logs",
+      "id": "aws_instance.worker",
+      "kind": "compute",
+      "name": "worker",
       "source": "terraform",
-      "criticality": "medium",
-      "exposure": 0.7,
+      "criticality": "high",
+      "exposure": 0.5,
       "metadata": {
-        "resource_type": "aws_s3_bucket",
+        "resource_type": "aws_instance",
         "attributes": {
-          "bucket": "argus-logs-demo"
+          "ami": "ami-demo",
+          "instance_type": "t3.small",
+          "vpc_security_group_ids": [
+            "${aws_security_group.internal.id}"
+          ],
+          "iam_instance_profile": "${aws_iam_instance_profile.web.name}"
         }
       },
       "stride": [],
       "cves": [],
       "mitre_techniques": [
-        "T1119",
-        "T1213",
-        "T1486",
-        "T1530",
-        "T1552"
+        "T1053",
+        "T1059",
+        "T1547",
+        "T1611"
       ],
-      "cvss_max": 6.0
+      "cvss_max": 5.0
     },
     {
-      "id": "aws_iam_role.lambda_exec",
+      "id": "aws_iam_role.instance",
       "kind": "iam",
-      "name": "lambda_exec",
+      "name": "instance",
       "source": "terraform",
       "criticality": "high",
       "exposure": 0.2,
       "metadata": {
         "resource_type": "aws_iam_role",
         "attributes": {
-          "name": "argus-lambda-role",
-          "assume_role_policy": "${jsonencode({Version = \"2012-10-17\", Statement = [{Action = \"sts:AssumeRole\", Effect = \"Allow\", Principal = {Service = \"lambda.amazonaws.com\"}}]})}"
+          "name": "demo-instance-role",
+          "assume_role_policy": "${jsonencode({Version = \"2012-10-17\", Statement = [{Action = \"sts:AssumeRole\", Effect = \"Allow\", Principal = {Service = \"ec2.amazonaws.com\"}}]})}"
         }
       },
       "stride": [],
@@ -147,6 +172,146 @@
       "cvss_max": 8.0
     },
     {
+      "id": "aws_iam_instance_profile.web",
+      "kind": "iam",
+      "name": "web",
+      "source": "terraform",
+      "criticality": "low",
+      "exposure": 0.2,
+      "metadata": {
+        "resource_type": "aws_iam_instance_profile",
+        "attributes": {
+          "name": "demo-instance-profile",
+          "role": "${aws_iam_role.instance.name}"
+        }
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "T1078",
+        "T1087",
+        "T1098",
+        "T1548"
+      ],
+      "cvss_max": 8.0
+    },
+    {
+      "id": "aws_iam_policy.bucket_access",
+      "kind": "iam",
+      "name": "bucket_access",
+      "source": "terraform",
+      "criticality": "low",
+      "exposure": 0.2,
+      "metadata": {
+        "resource_type": "aws_iam_policy",
+        "attributes": {
+          "name": "demo-bucket-access",
+          "description": "Access policy for the artifacts bucket",
+          "tags": {
+            "SourceBucket": "${aws_s3_bucket.artifacts.bucket}"
+          },
+          "policy": "${jsonencode({Version = \"2012-10-17\", Statement = [{Action = [\"s3:GetObject\", \"s3:PutObject\"], Effect = \"Allow\", Resource = \"${aws_s3_bucket.artifacts.arn}/*\"}]})}"
+        }
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "T1078",
+        "T1087",
+        "T1098",
+        "T1548"
+      ],
+      "cvss_max": 8.0
+    },
+    {
+      "id": "aws_iam_role_policy_attachment.instance_bucket_access",
+      "kind": "iam",
+      "name": "instance_bucket_access",
+      "source": "terraform",
+      "criticality": "low",
+      "exposure": 0.2,
+      "metadata": {
+        "resource_type": "aws_iam_role_policy_attachment",
+        "attributes": {
+          "role": "${aws_iam_role.instance.name}",
+          "policy_arn": "${aws_iam_policy.bucket_access.arn}"
+        }
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "T1078",
+        "T1087",
+        "T1098",
+        "T1548"
+      ],
+      "cvss_max": 8.0
+    },
+    {
+      "id": "aws_s3_bucket.artifacts",
+      "kind": "storage",
+      "name": "artifacts",
+      "source": "terraform",
+      "criticality": "medium",
+      "exposure": 0.7,
+      "metadata": {
+        "resource_type": "aws_s3_bucket",
+        "attributes": {
+          "bucket": "argusloom-demo-artifacts"
+        }
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "AML.T0115",
+        "T1119",
+        "T1213",
+        "T1486",
+        "T1530",
+        "T1552"
+      ],
+      "cvss_max": 6.0
+    },
+    {
+      "id": "aws_db_instance.database",
+      "kind": "data",
+      "name": "database",
+      "source": "terraform",
+      "criticality": "high",
+      "exposure": 0.2,
+      "metadata": {
+        "resource_type": "aws_db_instance",
+        "attributes": {
+          "identifier": "demo-database",
+          "allocated_storage": 20,
+          "engine": "postgres",
+          "instance_class": "db.t3.micro",
+          "vpc_security_group_ids": [
+            "${aws_security_group.internal.id}"
+          ]
+        }
+      },
+      "stride": [
+        "tampering",
+        "information_disclosure"
+      ],
+      "cves": [
+        "CVE-2018-16603"
+      ],
+      "mitre_techniques": [
+        "AML.T0020",
+        "AML.T0057",
+        "AML.T0070",
+        "T1041",
+        "T1119",
+        "T1213",
+        "T1486",
+        "T1530",
+        "T1560"
+      ],
+      "cvss_max": 5.9
+    },
+    {
       "id": "aws_lambda_function.handler",
       "kind": "compute",
       "name": "handler",
@@ -156,13 +321,55 @@
       "metadata": {
         "resource_type": "aws_lambda_function",
         "attributes": {
-          "function_name": "argus-handler",
-          "role": "${aws_iam_role.lambda_exec.arn}",
+          "function_name": "argus-demo-handler",
+          "role": "${aws_iam_role.instance.arn}",
           "runtime": "python3.11",
           "environment": [
             {
               "variables": {
-                "LOGS_BUCKET": "${aws_s3_bucket.logs.bucket}"
+                "QUEUE_URL": "${aws_sqs_queue.jobs.url}",
+                "NEXT_FN": "${aws_lambda_function.processor.arn}"
+              },
+              "__is_block__": true
+            }
+          ],
+          "logging_config": [
+            {
+              "log_group": "${aws_cloudwatch_log_group.lambda.name}",
+              "__is_block__": true
+            }
+          ]
+        }
+      },
+      "stride": [
+        "elevation_of_privilege"
+      ],
+      "cves": [],
+      "mitre_techniques": [
+        "T1053",
+        "T1059",
+        "T1547",
+        "T1611"
+      ],
+      "cvss_max": 5.0
+    },
+    {
+      "id": "aws_lambda_function.processor",
+      "kind": "compute",
+      "name": "processor",
+      "source": "terraform",
+      "criticality": "high",
+      "exposure": 0.2,
+      "metadata": {
+        "resource_type": "aws_lambda_function",
+        "attributes": {
+          "function_name": "argus-demo-processor",
+          "role": "${aws_iam_role.instance.arn}",
+          "runtime": "python3.11",
+          "environment": [
+            {
+              "variables": {
+                "DATABASE_ENDPOINT": "${aws_db_instance.database.endpoint}"
               },
               "__is_block__": true
             }
@@ -182,161 +389,17 @@
       "cvss_max": 5.0
     },
     {
-      "id": "aws_db_instance.db",
-      "kind": "data",
-      "name": "db",
-      "source": "terraform",
-      "criticality": "high",
-      "exposure": 0.2,
-      "metadata": {
-        "resource_type": "aws_db_instance",
-        "attributes": {
-          "identifier": "argus-db",
-          "allocated_storage": 20,
-          "engine": "postgres",
-          "instance_class": "db.t3.micro",
-          "vpc_security_group_ids": [
-            "${aws_security_group.app.id}"
-          ]
-        }
-      },
-      "stride": [
-        "tampering",
-        "information_disclosure"
-      ],
-      "cves": [
-        "CVE-2017-9450",
-        "CVE-2018-16522",
-        "CVE-2018-16523",
-        "CVE-2018-16524",
-        "CVE-2018-16525",
-        "CVE-2018-16526",
-        "CVE-2018-16527",
-        "CVE-2018-16528",
-        "CVE-2018-16598",
-        "CVE-2018-16599",
-        "CVE-2018-16600",
-        "CVE-2018-16601",
-        "CVE-2018-16602",
-        "CVE-2018-16603"
-      ],
-      "mitre_techniques": [
-        "AML.T0020",
-        "AML.T0057",
-        "AML.T0070",
-        "T1041",
-        "T1119",
-        "T1213",
-        "T1486",
-        "T1530",
-        "T1560"
-      ],
-      "cvss_max": 8.1
-    },
-    {
-      "id": "aws_api_gateway_rest_api.api",
-      "kind": "network",
-      "name": "api",
-      "source": "terraform",
-      "criticality": "medium",
-      "exposure": 0.6,
-      "metadata": {
-        "resource_type": "aws_api_gateway_rest_api",
-        "attributes": {
-          "name": "argus-api"
-        }
-      },
-      "stride": [],
-      "cves": [],
-      "mitre_techniques": [
-        "AML.T0040",
-        "AML.T0049",
-        "T1021",
-        "T1041",
-        "T1046",
-        "T1071",
-        "T1190",
-        "T1486"
-      ],
-      "cvss_max": 9.0
-    },
-    {
-      "id": "k8s_deployment.web",
-      "kind": "compute",
-      "name": "web",
-      "source": "kubernetes",
-      "criticality": "high",
-      "exposure": 0.2,
-      "metadata": {
-        "kind": "Deployment",
-        "manifest": "app.yaml"
-      },
-      "stride": [],
-      "cves": [],
-      "mitre_techniques": [
-        "T1053",
-        "T1059",
-        "T1547",
-        "T1611"
-      ],
-      "cvss_max": 5.0
-    },
-    {
-      "id": "k8s_service.web-svc",
-      "kind": "network",
-      "name": "web-svc",
-      "source": "kubernetes",
-      "criticality": "medium",
-      "exposure": 0.2,
-      "metadata": {
-        "kind": "Service",
-        "manifest": "app.yaml"
-      },
-      "stride": [],
-      "cves": [],
-      "mitre_techniques": [
-        "T1021",
-        "T1041",
-        "T1046",
-        "T1071",
-        "T1190",
-        "T1486"
-      ],
-      "cvss_max": 9.0
-    },
-    {
-      "id": "k8s_ingress.web-ingress",
-      "kind": "network",
-      "name": "web-ingress",
-      "source": "kubernetes",
-      "criticality": "low",
-      "exposure": 0.4,
-      "metadata": {
-        "kind": "Ingress",
-        "manifest": "app.yaml"
-      },
-      "stride": [],
-      "cves": [],
-      "mitre_techniques": [
-        "T1021",
-        "T1041",
-        "T1046",
-        "T1071",
-        "T1190",
-        "T1486"
-      ],
-      "cvss_max": 9.0
-    },
-    {
-      "id": "k8s_configmap.web-config",
+      "id": "aws_sqs_queue.jobs",
       "kind": "external",
-      "name": "web-config",
-      "source": "kubernetes",
-      "criticality": "medium",
+      "name": "jobs",
+      "source": "terraform",
+      "criticality": "low",
       "exposure": 0.2,
       "metadata": {
-        "kind": "ConfigMap",
-        "manifest": "app.yaml"
+        "resource_type": "aws_sqs_queue",
+        "attributes": {
+          "name": "argus-demo-jobs"
+        }
       },
       "stride": [],
       "cves": [],
@@ -347,15 +410,18 @@
       "cvss_max": 4.0
     },
     {
-      "id": "k8s_secret.web-secret",
+      "id": "aws_cloudwatch_log_group.lambda",
       "kind": "external",
-      "name": "web-secret",
-      "source": "kubernetes",
-      "criticality": "medium",
+      "name": "lambda",
+      "source": "terraform",
+      "criticality": "low",
       "exposure": 0.2,
       "metadata": {
-        "kind": "Secret",
-        "manifest": "app.yaml"
+        "resource_type": "aws_cloudwatch_log_group",
+        "attributes": {
+          "name": "/aws/lambda/argus-demo-handler",
+          "kms_key_id": "${aws_kms_key.logs.arn}"
+        }
       },
       "stride": [],
       "cves": [],
@@ -366,81 +432,186 @@
       "cvss_max": 4.0
     },
     {
-      "id": "k8s_serviceaccount.web-sa",
-      "kind": "iam",
-      "name": "web-sa",
-      "source": "kubernetes",
+      "id": "aws_kms_key.logs",
+      "kind": "external",
+      "name": "logs",
+      "source": "terraform",
       "criticality": "low",
       "exposure": 0.2,
       "metadata": {
-        "kind": "ServiceAccount",
-        "manifest": "app.yaml"
+        "resource_type": "aws_kms_key",
+        "attributes": {
+          "description": "Encrypt demo Lambda logs"
+        }
       },
       "stride": [],
       "cves": [],
       "mitre_techniques": [
-        "T1078",
-        "T1087",
-        "T1098",
-        "T1548"
+        "AML.T0049",
+        "T1190"
       ],
-      "cvss_max": 8.0
+      "cvss_max": 4.0
     }
   ],
   "edges": [
     {
-      "source": "aws_security_group.app",
+      "source": "aws_security_group.public",
       "target": "external.internet",
       "relation": "exposes",
       "confidence": 1.0,
       "metadata": {}
     },
     {
-      "source": "aws_security_group.app",
+      "source": "aws_security_group.public",
       "target": "aws_instance.web",
       "relation": "attached_to",
       "confidence": 1.0,
       "metadata": {}
     },
     {
-      "source": "aws_iam_role.lambda_exec",
+      "source": "aws_security_group.internal",
+      "target": "aws_instance.worker",
+      "relation": "attached_to",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_iam_role.instance",
       "target": "aws_lambda_function.handler",
       "relation": "uses_role",
       "confidence": 1.0,
       "metadata": {}
     },
     {
-      "source": "aws_security_group.app",
-      "target": "aws_instance.web",
+      "source": "aws_iam_role.instance",
+      "target": "aws_lambda_function.processor",
+      "relation": "uses_role",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_instance.web",
+      "target": "aws_security_group.public",
       "relation": "depends_on",
       "confidence": 1.0,
       "metadata": {}
     },
     {
-      "source": "aws_iam_role.lambda_exec",
+      "source": "aws_instance.web",
+      "target": "aws_iam_instance_profile.web",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_instance.web",
       "target": "aws_lambda_function.handler",
       "relation": "depends_on",
       "confidence": 1.0,
       "metadata": {}
     },
     {
-      "source": "aws_security_group.app",
-      "target": "aws_db_instance.db",
+      "source": "aws_instance.web",
+      "target": "aws_s3_bucket.artifacts",
       "relation": "depends_on",
       "confidence": 1.0,
       "metadata": {}
     },
     {
-      "source": "k8s_service.web-svc",
-      "target": "k8s_deployment.web",
-      "relation": "selects",
+      "source": "aws_instance.worker",
+      "target": "aws_security_group.internal",
+      "relation": "depends_on",
       "confidence": 1.0,
       "metadata": {}
     },
     {
-      "source": "k8s_ingress.web-ingress",
-      "target": "external.internet",
-      "relation": "exposes",
+      "source": "aws_instance.worker",
+      "target": "aws_iam_instance_profile.web",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_iam_instance_profile.web",
+      "target": "aws_iam_role.instance",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_iam_policy.bucket_access",
+      "target": "aws_s3_bucket.artifacts",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_iam_role_policy_attachment.instance_bucket_access",
+      "target": "aws_iam_role.instance",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_iam_role_policy_attachment.instance_bucket_access",
+      "target": "aws_iam_policy.bucket_access",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_db_instance.database",
+      "target": "aws_security_group.internal",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_lambda_function.handler",
+      "target": "aws_iam_role.instance",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_lambda_function.handler",
+      "target": "aws_sqs_queue.jobs",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_lambda_function.handler",
+      "target": "aws_lambda_function.processor",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_lambda_function.handler",
+      "target": "aws_cloudwatch_log_group.lambda",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_lambda_function.processor",
+      "target": "aws_iam_role.instance",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_lambda_function.processor",
+      "target": "aws_db_instance.database",
+      "relation": "depends_on",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "aws_cloudwatch_log_group.lambda",
+      "target": "aws_kms_key.logs",
+      "relation": "depends_on",
       "confidence": 1.0,
       "metadata": {}
     }

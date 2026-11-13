@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 from typing import Annotated
 
@@ -139,6 +140,48 @@ def serve() -> None:
     import uvicorn
 
     uvicorn.run("argusloom.api.app:app", host="127.0.0.1", port=8000, reload=False)
+
+
+@app.command()
+def scenario(name: str) -> None:
+    """Activate a generated demo graph, or list available scenario graphs."""
+    root = Path.cwd()
+    data_dir = root / "data"
+
+    if name.lower() == "list":
+        available = sorted(data_dir.glob("graph_[ABC].json"))
+        if not available:
+            typer.echo(
+                "No scenario graphs available. Run python ingest.py --scenario A|B|C first."
+            )
+            return
+        for graph_path in available:
+            payload = json.loads(graph_path.read_text(encoding="utf-8"))
+            typer.echo(
+                f"{graph_path.stem[-1]}: {len(payload.get('nodes', []))} nodes, "
+                f"{len(payload.get('edges', []))} edges ({graph_path})"
+            )
+        return
+
+    scenario_name = name.upper()
+    if scenario_name not in {"A", "B", "C"}:
+        raise typer.BadParameter("Choose A, B, C, or list.")
+
+    source = data_dir / f"graph_{scenario_name}.json"
+    if not source.is_file():
+        typer.echo(
+            f"Scenario graph not found: {source}. Run python ingest.py --scenario {scenario_name} first.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+    target = data_dir / "graph.json"
+    shutil.copyfile(source, target)
+    payload = json.loads(target.read_text(encoding="utf-8"))
+    typer.echo(
+        f"Scenario {scenario_name} activated: {target} "
+        f"({len(payload.get('nodes', []))} nodes, {len(payload.get('edges', []))} edges)."
+    )
 
 
 @app.command("export-openapi")

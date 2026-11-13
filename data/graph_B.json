@@ -1,0 +1,385 @@
+{
+  "nodes": [
+    {
+      "id": "k8s_deployment.web",
+      "kind": "compute",
+      "name": "web",
+      "source": "kubernetes",
+      "criticality": "high",
+      "exposure": 0.2,
+      "metadata": {
+        "kind": "Deployment",
+        "manifest": "app.yaml"
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "T1053",
+        "T1059",
+        "T1547",
+        "T1611"
+      ],
+      "cvss_max": 5.0
+    },
+    {
+      "id": "k8s_service.web-service",
+      "kind": "network",
+      "name": "web-service",
+      "source": "kubernetes",
+      "criticality": "medium",
+      "exposure": 0.2,
+      "metadata": {
+        "kind": "Service",
+        "manifest": "app.yaml"
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "T1021",
+        "T1041",
+        "T1046",
+        "T1071",
+        "T1190",
+        "T1486"
+      ],
+      "cvss_max": 9.0
+    },
+    {
+      "id": "k8s_deployment.api",
+      "kind": "compute",
+      "name": "api",
+      "source": "kubernetes",
+      "criticality": "high",
+      "exposure": 0.2,
+      "metadata": {
+        "kind": "Deployment",
+        "manifest": "app.yaml"
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "AML.T0040",
+        "AML.T0049",
+        "T1053",
+        "T1059",
+        "T1071",
+        "T1190",
+        "T1547",
+        "T1611"
+      ],
+      "cvss_max": 5.0
+    },
+    {
+      "id": "k8s_service.api-service",
+      "kind": "network",
+      "name": "api-service",
+      "source": "kubernetes",
+      "criticality": "medium",
+      "exposure": 0.2,
+      "metadata": {
+        "kind": "Service",
+        "manifest": "app.yaml"
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "AML.T0040",
+        "AML.T0049",
+        "T1021",
+        "T1041",
+        "T1046",
+        "T1071",
+        "T1190",
+        "T1486"
+      ],
+      "cvss_max": 9.0
+    },
+    {
+      "id": "k8s_deployment.worker",
+      "kind": "compute",
+      "name": "worker",
+      "source": "kubernetes",
+      "criticality": "high",
+      "exposure": 0.2,
+      "metadata": {
+        "kind": "Deployment",
+        "manifest": "app.yaml"
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "T1053",
+        "T1059",
+        "T1547",
+        "T1611"
+      ],
+      "cvss_max": 5.0
+    },
+    {
+      "id": "k8s_service.worker-service",
+      "kind": "network",
+      "name": "worker-service",
+      "source": "kubernetes",
+      "criticality": "medium",
+      "exposure": 0.2,
+      "metadata": {
+        "kind": "Service",
+        "manifest": "app.yaml"
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "T1021",
+        "T1041",
+        "T1046",
+        "T1071",
+        "T1190",
+        "T1486"
+      ],
+      "cvss_max": 9.0
+    },
+    {
+      "id": "k8s_ingress.public-ingress",
+      "kind": "network",
+      "name": "public-ingress",
+      "source": "kubernetes",
+      "criticality": "low",
+      "exposure": 0.4,
+      "metadata": {
+        "kind": "Ingress",
+        "manifest": "app.yaml"
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "AML.T0049",
+        "T1021",
+        "T1041",
+        "T1046",
+        "T1071",
+        "T1190",
+        "T1486"
+      ],
+      "cvss_max": 9.0
+    },
+    {
+      "id": "k8s_ingress.api-ingress",
+      "kind": "network",
+      "name": "api-ingress",
+      "source": "kubernetes",
+      "criticality": "low",
+      "exposure": 0.4,
+      "metadata": {
+        "kind": "Ingress",
+        "manifest": "app.yaml"
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "AML.T0040",
+        "AML.T0049",
+        "T1021",
+        "T1041",
+        "T1046",
+        "T1071",
+        "T1190",
+        "T1486"
+      ],
+      "cvss_max": 9.0
+    },
+    {
+      "id": "k8s_ingress.worker-ingress",
+      "kind": "network",
+      "name": "worker-ingress",
+      "source": "kubernetes",
+      "criticality": "low",
+      "exposure": 0.4,
+      "metadata": {
+        "kind": "Ingress",
+        "manifest": "app.yaml"
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "T1021",
+        "T1041",
+        "T1046",
+        "T1071",
+        "T1190",
+        "T1486"
+      ],
+      "cvss_max": 9.0
+    },
+    {
+      "id": "k8s_ingress.metrics-ingress",
+      "kind": "network",
+      "name": "metrics-ingress",
+      "source": "kubernetes",
+      "criticality": "low",
+      "exposure": 0.4,
+      "metadata": {
+        "kind": "Ingress",
+        "manifest": "app.yaml"
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "T1021",
+        "T1041",
+        "T1046",
+        "T1071",
+        "T1190",
+        "T1486"
+      ],
+      "cvss_max": 9.0
+    },
+    {
+      "id": "k8s_configmap.app-config",
+      "kind": "external",
+      "name": "app-config",
+      "source": "kubernetes",
+      "criticality": "medium",
+      "exposure": 0.2,
+      "metadata": {
+        "kind": "ConfigMap",
+        "manifest": "app.yaml"
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "AML.T0049",
+        "T1190"
+      ],
+      "cvss_max": 4.0
+    },
+    {
+      "id": "k8s_secret.app-secret",
+      "kind": "external",
+      "name": "app-secret",
+      "source": "kubernetes",
+      "criticality": "medium",
+      "exposure": 0.2,
+      "metadata": {
+        "kind": "Secret",
+        "manifest": "app.yaml"
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "AML.T0049",
+        "T1190"
+      ],
+      "cvss_max": 4.0
+    },
+    {
+      "id": "k8s_serviceaccount.app-service-account",
+      "kind": "iam",
+      "name": "app-service-account",
+      "source": "kubernetes",
+      "criticality": "low",
+      "exposure": 0.2,
+      "metadata": {
+        "kind": "ServiceAccount",
+        "manifest": "app.yaml"
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "T1078",
+        "T1087",
+        "T1098",
+        "T1548"
+      ],
+      "cvss_max": 8.0
+    },
+    {
+      "id": "k8s_role.app-role",
+      "kind": "external",
+      "name": "app-role",
+      "source": "kubernetes",
+      "criticality": "low",
+      "exposure": 0.2,
+      "metadata": {
+        "kind": "Role",
+        "manifest": "app.yaml"
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "AML.T0049",
+        "T1190"
+      ],
+      "cvss_max": 4.0
+    },
+    {
+      "id": "k8s_rolebinding.app-role-binding",
+      "kind": "external",
+      "name": "app-role-binding",
+      "source": "kubernetes",
+      "criticality": "low",
+      "exposure": 0.2,
+      "metadata": {
+        "kind": "RoleBinding",
+        "manifest": "app.yaml"
+      },
+      "stride": [],
+      "cves": [],
+      "mitre_techniques": [
+        "AML.T0049",
+        "T1190"
+      ],
+      "cvss_max": 4.0
+    }
+  ],
+  "edges": [
+    {
+      "source": "k8s_service.web-service",
+      "target": "k8s_deployment.web",
+      "relation": "selects",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "k8s_service.api-service",
+      "target": "k8s_deployment.api",
+      "relation": "selects",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "k8s_service.worker-service",
+      "target": "k8s_deployment.worker",
+      "relation": "selects",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "k8s_ingress.public-ingress",
+      "target": "external.internet",
+      "relation": "exposes",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "k8s_ingress.api-ingress",
+      "target": "external.internet",
+      "relation": "exposes",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "k8s_ingress.worker-ingress",
+      "target": "external.internet",
+      "relation": "exposes",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "source": "k8s_ingress.metrics-ingress",
+      "target": "external.internet",
+      "relation": "exposes",
+      "confidence": 1.0,
+      "metadata": {}
+    }
+  ]
+}

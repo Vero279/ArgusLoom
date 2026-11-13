@@ -68,6 +68,20 @@ def test_compute_blast_radius_respects_max_depth() -> None:
     assert [node.id for node in result.nodes] == ["A", "B"]
 
 
+def test_compute_blast_radius_ignores_edges_to_missing_nodes() -> None:
+    graph = _graph_linear()
+    graph.edges.append(GraphEdge(source="A", target="external.internet", relation="exposes"))
+
+    result = compute_blast_radius(graph, [], "A", max_depth=3)
+
+    assert [node.id for node in result.nodes] == ["A", "B", "C"]
+    assert "external.internet" not in result.depth_map
+    assert all(
+        edge.source in result.depth_map and edge.target in result.depth_map
+        for edge in result.edges
+    )
+
+
 def test_compute_blast_radius_depth_map_for_branching_graph() -> None:
     graph = Graph(
         nodes=[

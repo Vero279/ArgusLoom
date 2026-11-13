@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +32,23 @@ def _normalize_ref(ref: str) -> str:
     if normalized.startswith("\"") and normalized.endswith("\""):
         return normalized.strip('"')
     return normalized
+
+
+def _extract_aws_refs(value: Any, out: list[str]) -> None:
+    if isinstance(value, str):
+        candidates = [value.strip().strip('"')]
+        candidates.extend(re.findall(r"\$\{([^}]*)\}", value))
+        for candidate in candidates:
+            normalized = candidate.replace("${", "").replace("}", "").strip().strip('"')
+            match = re.match(r"^(aws_[a-z0-9_]+\.[a-z0-9_]+)", normalized)
+            if match:
+                out.append(match.group(1))
+    elif isinstance(value, dict):
+        for nested_value in value.values():
+            _extract_aws_refs(nested_value, out)
+    elif isinstance(value, (list, tuple)):
+        for nested_value in value:
+            _extract_aws_refs(nested_value, out)
 
 
 def _infer_criticality(resource_type: str, attributes: dict[str, Any]) -> Criticality:
@@ -140,14 +158,19 @@ def parse_terraform_directory(path: str | Path) -> tuple[list[GraphNode], list[G
         )
         nodes.append(node)
 
-        if resource_type == "aws_instance":
+        if resource_type in {
+            "aws_instance",
+            "aws_db_instance",
+            "aws_lambda_function",
+            "aws_api_gateway_rest_api",
+        }:
             security_groups = attrs.get("vpc_security_group_ids", [])
             if isinstance(security_groups, list):
                 for group in security_groups:
                     ref = _normalize_ref(str(group))
                     if isinstance(ref, str) and ref.startswith("aws_security_group."):
                         edges.append(GraphEdge(source=ref, target=resource_id, relation="attached_to"))
-        elif resource_type == "aws_lambda_function":
+        if resource_type == "aws_lambda_function":
             role_ref = _normalize_ref(attrs.get("role", ""))
             if isinstance(role_ref, str) and role_ref.startswith("aws_iam_role"):
                 edges.append(GraphEdge(source=role_ref, target=resource_id, relation="uses_role"))
@@ -162,19 +185,18 @@ def parse_terraform_directory(path: str | Path) -> tuple[list[GraphNode], list[G
         resource_name = resource["name"]
         current_id = f"{resource_type}.{resource_name}"
         attrs = resource["attributes"]
-        for value in attrs.values():
-            refs: list[str] = []
-            if isinstance(value, str):
-                ref = _normalize_ref(value)
-                if ref.startswith("aws_"):
-                    refs.append(ref)
-            elif isinstance(value, list):
-                for item in value:
-                    ref = _normalize_ref(str(item))
-                    if isinstance(ref, str) and ref.startswith("aws_"):
-                        refs.append(ref)
-            for ref in refs:
-                if ref in node_ids:
-                    edges.append(GraphEdge(source=ref, target=current_id, relation="depends_on"))
+        refs: list[str] = []
+        _extract_aws_refs(attrs, refs)
+        for ref in refs:
+            if ref in node_ids:
+                edges.append(GraphEdge(source=current_id, target=ref, relation="depends_on"))
 
-    return nodes, edges
+    unique_edges: list[GraphEdge] = []
+    seen: set[tuple[str, str, str]] = set()
+    for edge in edges:
+        edge_key = (edge.source, edge.target, edge.relation)
+        if edge_key not in seen:
+            seen.add(edge_key)
+            unique_edges.append(edge)
+
+    return nodes, unique_edges

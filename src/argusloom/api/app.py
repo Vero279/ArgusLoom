@@ -7,6 +7,7 @@ from typing import Any
 
 import structlog
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from argusloom import __version__
@@ -18,6 +19,7 @@ from argusloom.api.routes.analysis import (
 )
 from argusloom.api.routes.cti import router as cti_router
 from argusloom.api.routes.rag import router as rag_router
+from argusloom.api.routes.scenarios import router as scenarios_router
 from argusloom.domain.enums import Criticality, NodeKind, StrideCategory
 from argusloom.domain.errors import NodeNotFound
 from argusloom.domain.graph import Graph, GraphEdge, GraphNode
@@ -95,8 +97,20 @@ def _load_graph_from_store() -> Graph:
 
 def create_app() -> FastAPI:
     app = FastAPI(title="ArgusLoom", version=__version__)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:4173",
+            "http://127.0.0.1:4173",
+        ],
+        allow_methods=["GET", "POST"],
+        allow_headers=["Accept", "Content-Type"],
+    )
     app.include_router(cti_router)
     app.include_router(rag_router)
+    app.include_router(scenarios_router, prefix="/dev")
 
     @app.exception_handler(NodeNotFound)
     async def node_not_found_handler(request: Any, exc: NodeNotFound) -> JSONResponse:
@@ -110,6 +124,10 @@ def create_app() -> FastAPI:
     @app.get("/")
     def root() -> dict[str, str]:
         return {"service": "argusloom", "version": __version__}
+
+    @app.get("/graph")
+    def graph_endpoint() -> dict[str, Any]:
+        return _load_graph_from_store().to_dict()
 
     @app.post("/graph/analyze")
     def analyze_graph_endpoint(payload: dict[str, Any]) -> dict[str, Any]:

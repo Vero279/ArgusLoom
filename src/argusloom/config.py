@@ -3,9 +3,15 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from typing import Any
 
 from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _default_dev_mode(data: dict[str, Any]) -> bool:
+    environment = str(data.get("environment", "development")).casefold()
+    return environment not in {"production", "prod"}
 
 
 class Settings(BaseSettings):
@@ -23,6 +29,14 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "argusloom"
+    environment: str = Field(
+        default="development",
+        validation_alias="ARGUS_ENVIRONMENT",
+    )
+    dev_mode: bool = Field(
+        default_factory=_default_dev_mode,
+        validation_alias="ARGUS_DEV_MODE",
+    )
     argus_use_mock_llm: bool = Field(default=True)
     use_mock_llm: bool | None = None
     use_mock_nvd: bool = Field(

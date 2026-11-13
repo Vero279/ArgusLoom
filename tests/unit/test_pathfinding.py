@@ -1,3 +1,5 @@
+import pytest
+
 from argusloom.domain.enums import Criticality, NodeKind
 from argusloom.domain.errors import NodeNotFound
 from argusloom.domain.graph import Graph, GraphEdge, GraphNode
@@ -117,21 +119,30 @@ def test_find_attack_paths_prefers_less_cost_route() -> None:
     assert paths[0].nodes == ["A", "B", "C"]
 
 
-def test_find_attack_paths_bfs_prefers_fewer_hops() -> None:
+def test_find_attack_paths_yen_returns_distinct_alternatives() -> None:
     graph = _graph_branching()
 
-    paths = find_attack_paths(graph, "A", "C", strategy="bfs")
+    paths = find_attack_paths(graph, "A", "C", strategy="yen", top_k=2)
 
+    assert len(paths) == 2
+    first_edges = {(edge.source, edge.target) for edge in paths[0].edges}
+    second_edges = {(edge.source, edge.target) for edge in paths[1].edges}
+    assert first_edges - second_edges
+    assert second_edges - first_edges
+
+
+def test_dijkstra_ignores_top_k_and_returns_one_path() -> None:
+    graph = _graph_branching()
+
+    paths = find_attack_paths(graph, "A", "C", strategy="dijkstra", top_k=5)
+
+    assert len(paths) == 1
     assert paths[0].nodes == ["A", "B", "C"]
 
 
-def test_find_attack_paths_top_k_returns_multiple_distinct_paths() -> None:
-    graph = _graph_branching()
-
-    paths = find_attack_paths(graph, "A", "C", strategy="dijkstra", top_k=2)
-
-    assert len(paths) >= 1
-    assert all(path.length >= 1 for path in paths)
+def test_yen_rejects_invalid_top_k() -> None:
+    with pytest.raises(ValueError, match="top_k must be >= 1"):
+        find_attack_paths(_graph_branching(), "A", "C", strategy="yen", top_k=0)
 
 
 def test_find_attack_paths_with_no_route_returns_empty_list() -> None:
@@ -163,3 +174,95 @@ def test_find_attack_paths_unknown_source_raises() -> None:
         raise AssertionError("Expected NodeNotFound")
     except NodeNotFound as exc:
         assert str(exc) == "Node 'missing' not found"
+
+
+def test_find_attack_paths_returns_distinct_paths() -> None:
+    graph = Graph(
+        nodes=[
+            GraphNode(id=node_id, kind=NodeKind.COMPUTE, name=node_id, source="fixture")
+            for node_id in ("A", "B", "C", "D")
+        ],
+        edges=[
+            GraphEdge(source="A", target="B"),
+            GraphEdge(source="B", target="D"),
+            GraphEdge(source="A", target="C"),
+            GraphEdge(source="C", target="D"),
+            GraphEdge(source="B", target="C"),
+        ],
+    )
+
+    paths = find_attack_paths(graph, "A", "D", strategy="yen", top_k=2)
+
+    assert len(paths) == 2
+    assert {tuple(path.nodes[1:-1]) for path in paths} == {("B",), ("C",)}
+
+
+def test_yen_returns_structurally_distinct_paths_on_diamond_graph(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    graph = Graph(
+        nodes=[
+            GraphNode(
+                id=node_id,
+                kind=NodeKind.COMPUTE,
+                name=node_id,
+                source="fixture",
+            )
+            for node_id in ("A", "B", "C", "D", "E")
+        ],
+        edges=[
+            GraphEdge(source="A", target="B"),
+            GraphEdge(source="A", target="C"),
+            GraphEdge(source="B", target="D"),
+            GraphEdge(source="C", target="D"),
+            GraphEdge(source="B", target="C"),
+            GraphEdge(source="A", target="E"),
+            GraphEdge(source="E", target="D"),
+        ],
+    )
+    edge_weights = {
+        ("A", "B"): 1.0,
+        ("A", "C"): 2.0,
+        ("B", "D"): 1.0,
+        ("C", "D"): 1.0,
+        ("B", "C"): 10.0,
+        ("A", "E"): 1.0,
+        ("E", "D"): 1.0,
+    }
+    monkeypatch.setattr(
+        "argusloom.graph.pathfinding._edge_cost",
+        lambda _graph, edge: edge_weights[(edge.source, edge.target)],
+    )
+
+    dijkstra_paths = find_attack_paths(graph, "A", "D", strategy="dijkstra", top_k=3)
+    yen_paths = find_attack_paths(graph, "A", "D", strategy="yen", top_k=3)
+    dijkstra_single = find_attack_paths(graph, "A", "D", strategy="dijkstra", top_k=1)
+
+    assert dijkstra_paths
+    assert yen_paths
+    assert dijkstra_paths[0].score == yen_paths[0].score
+    assert dijkstra_paths[0].nodes == yen_paths[0].nodes
+    assert len(yen_paths) >= 2
+    assert len(dijkstra_single) == 1
+    assert dijkstra_single[0].nodes == dijkstra_paths[0].nodes
+    yen_signatures = [
+        {(edge.source, edge.target) for edge in path.edges} for path in yen_paths
+    ]
+    for index, first in enumerate(yen_signatures):
+        for second in yen_signatures[index + 1 :]:
+            assert first - second
+            assert second - first
+    assert [path.nodes for path in yen_paths] == [
+        ["A", "B", "D"],
+        ["A", "E", "D"],
+        ["A", "C", "D"],
+    ]
+    assert [path.score for path in yen_paths] == [2.0, 2.0, 3.0]
+
+
+def test_find_attack_paths_rejects_bfs_strategy() -> None:
+    try:
+        find_attack_paths(_graph_linear(), "A", "C", strategy="bfs")
+        raise AssertionError("Expected ValueError")
+    except ValueError as exc:
+        assert str(exc) == "strategy must be 'dijkstra' or 'yen'"

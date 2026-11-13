@@ -131,6 +131,26 @@
         }
       }
     },
+    "/graph": {
+      "get": {
+        "summary": "Graph Endpoint",
+        "operationId": "graph_endpoint_graph_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Graph Endpoint Graph Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/graph/analyze": {
       "post": {
         "summary": "Analyze Graph Endpoint",

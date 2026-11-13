@@ -1,0 +1,17 @@
+{
+  "cves": {
+    "total": 15,
+    "valid": 15,
+    "invalid": []
+  },
+  "attack": {
+    "total": 24,
+    "valid": 24,
+    "invalid": []
+  },
+  "atlas": {
+    "total": 18,
+    "valid": 18,
+    "invalid": []
+  }
+}
