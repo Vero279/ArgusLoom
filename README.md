@@ -1,130 +1,120 @@
 # ArgusLoom
 
-ArgusLoom é um MVP de análise de risco e modelação de ameaças sobre grafos de infraestrutura, com ingestão de Terraform e Kubernetes, enriquecimento CTI e recuperação semântica por embeddings.
+ArgusLoom é uma aplicação de demonstração para modelação de ameaças e análise de risco sobre grafos de infraestrutura. O backend Python/FastAPI ingere recursos Terraform e Kubernetes, enriquece o grafo com informação CTI, calcula risco, blast radius e caminhos de ataque, e disponibiliza recuperação semântica. O frontend React apresenta o grafo, uma vista em lista acessível por teclado, detalhes dos nós e resultados das análises.
 
-## Quickstart
+## Requisitos
 
-```bash
-pip install -e ".[dev]"
-cp .env.example .env
-argusloom demo
-argusloom serve  # ou: argusloom export-openapi
+- Python 3.11 ou superior.
+- Node.js e npm para executar o frontend.
+- As dependências Python incluem ChromaDB e `sentence-transformers`; o primeiro uso da recuperação semântica pode descarregar o modelo de embeddings.
+
+## Instalação e execução
+
+Na raiz do repositório, instala o backend e as dependências de desenvolvimento:
+
+```powershell
+python -m pip install -e ".[dev]"
+Copy-Item .env.example .env
 ```
 
-## Frontend
+O ficheiro `.env` usa adapters mock por omissão para LLM e NVD. Para reconstruir o grafo base a partir das fixtures e imprimir um resumo:
 
-Com a API em execução, inicia o dashboard acessível:
+```powershell
+argusloom demo
+```
 
-```bash
-cd frontend
+Inicia a API em `http://127.0.0.1:8000`:
+
+```powershell
+argusloom serve
+```
+
+Com a API em execução, inicia o frontend num segundo terminal:
+
+```powershell
+Set-Location frontend
 npm install
 npm run dev
 ```
 
-Consulta a lista de critérios WCAG e as instruções de validação em [frontend/README.md](./frontend/README.md).
+O dashboard fica disponível em `http://localhost:5173`. Para alterar a origem da API, define `VITE_API_BASE_URL` antes de iniciar Vite. Os detalhes de execução e a checklist de acessibilidade estão em [frontend/README.md](./frontend/README.md).
 
 ## Cenários de demonstração
 
-| Cenário | Input | Nós/arestas esperados | Demonstração |
+Os grafos gerados são guardados em `data/graph_A.json`, `data/graph_B.json` e `data/graph_C.json`. O grafo ativo pela API é `data/graph.json`.
+
+| Cenário | Origem | Nós / arestas no grafo gerado | Foco |
 |---|---|---:|---|
-| A — Terraform only | `data/fixtures/scenarios/A_terraform_only/main.tf` | ≥5 nós / ≥3 arestas | Superfície AWS exposta, grupos de segurança e recursos ligados |
-| B — Kubernetes only | `data/fixtures/scenarios/B_k8s_only/app.yaml` | ≥4 nós / ≥2 arestas | Relações Service/Deployment e Ingress exposto |
-| C — Híbrido | `data/fixtures/scenarios/C_hybrid/` | ≥12 nós / ≥6 arestas | Infraestrutura AWS e Kubernetes combinada, enriquecimento CTI |
+| A — Terraform | `data/fixtures/scenarios/A_terraform_only/` | 16 / 23 | Recursos AWS e relações de infraestrutura |
+| B — Kubernetes | `data/fixtures/scenarios/B_k8s_only/` | 15 / 7 | Workloads e relações Kubernetes |
+| C — Híbrido | `data/fixtures/scenarios/C_hybrid/` | 42 / 51 | Recursos AWS e Kubernetes combinados |
 
-Gera os grafos offline com `python ingest.py --scenario A` (ou `B`/`C`).
-Para trocar o cenário servido pela API, execute `argusloom scenario A` (ou
-`B`/`C`) e atualize a página do dashboard. Consulte os grafos disponíveis com
-`argusloom scenario list`.
+Regenera os grafos com:
 
-The parser is identical for all scenarios; only the input fixtures differ.
-
-Com o backend e o frontend de desenvolvimento em execução, também é possível
-trocar de cenário pelos botões A/B/C no cabeçalho do dashboard. A CLI continua
-disponível com `argusloom scenario A` e a listagem com `argusloom scenario list`.
-Os endpoints de demonstração em `/dev/scenarios` são desativados em produção
-com `ARGUS_DEV_MODE=false`; nesse modo, o frontend mostra apenas
-“Cenário controlado por CLI”.
-
-## Arquitetura
-
-A arquitetura detalhada está em [docs/architecture.md](docs/architecture.md).
-
-```mermaid
-graph LR
-  A[Terraform + K8s fixtures] --> B[graph_builder]
-  B --> C[data/graph.json]
-  C --> D[Threat analysis]
-  C --> E[CTI enrichment]
-  C --> F[RAG retrieval]
-  D --> G[API]
-  E --> G
-  F --> G
+```powershell
+python ingest.py --scenario A
+python ingest.py --scenario B
+python ingest.py --scenario C
 ```
 
-## Endpoints
+Ativa um dos grafos já gerados para a API e o dashboard:
 
-| Método | Path | Descrição |
+```powershell
+argusloom scenario list
+argusloom scenario C
+```
+
+Em ambiente de desenvolvimento, o cabeçalho do dashboard também permite listar e ativar cenários através da API. Estes endpoints estão protegidos por `ARGUS_DEV_MODE`; o modo de desenvolvimento é desativado por omissão quando `ARGUS_ENVIRONMENT` é `production` ou `prod`.
+
+## Arquitetura e documentação
+
+O backend está organizado em módulos de domínio, ingestão, grafo, análise, CTI, RAG, API e workflow. O frontend é uma aplicação separada em `frontend/`. Consulte:
+
+- [Arquitetura e fluxo de dados](docs/architecture.md)
+- [Adapters externos e modo mock](docs/mockability.md)
+- [Mapeamento STRIDE implementado](docs/stride_mapping.md)
+
+## API
+
+A especificação OpenAPI interativa fica em `http://127.0.0.1:8000/docs`.
+
+| Método | Endpoint | Comportamento |
 |---|---|---|
-| GET | `/health` | Estado de saúde do serviço |
-| GET | `/` | Metadados do serviço |
-| POST | `/graph/analyze` | Analisa risco do grafo recebido |
-| POST | `/graph/remediation` | Produz plano de remediação |
-| GET | `/nodes/{id}/blast-radius` | Calcula blast radius a partir do nó |
-| POST | `/attack-paths` | Explora caminhos de ataque |
-| POST | `/rag/query` | Recuperação semântica por embeddings |
-| POST | `/cti/enrich` | Enriquece o grafo com MITRE e CVEs |
+| `GET` | `/health` | Estado e versão do serviço |
+| `GET` | `/graph` | Grafo ativo em `data/graph.json` |
+| `POST` | `/graph/analyze` | Findings de risco para o grafo enviado no corpo |
+| `POST` | `/graph/remediation` | Plano de remediação para o grafo enviado |
+| `GET` | `/nodes/{node_id}/blast-radius` | Nós e arestas alcançáveis; `max_depth` e `weighted` são configuráveis |
+| `POST` | `/attack-paths` | Caminhos entre `source_id` e `target_id` |
+| `POST` | `/rag/query` | Pesquisa semântica no grafo; `include_llm_answer` é falso por omissão |
+| `POST` | `/cti/enrich` | Enriquecimento CTI do grafo enviado |
+| `GET` | `/dev/scenarios` | Lista cenários gerados, apenas em modo de desenvolvimento |
+| `GET` | `/dev/scenarios/current` | Identifica o cenário ativo, apenas em modo de desenvolvimento |
+| `POST` | `/dev/scenarios/{scenario_id}/activate` | Ativa A, B ou C, apenas em modo de desenvolvimento |
 
-## Mockabilidade
+Em `/attack-paths`, `dijkstra` devolve o único caminho de menor custo e ignora `top_k`; `yen` devolve até `top_k` caminhos simples estruturalmente distintos, ordenados por custo. O contrato completo dos campos está descrito na especificação OpenAPI.
 
-A documentação de mockabilidade está em [docs/mockability.md](docs/mockability.md). O projeto usa LLM e NVD mock por default para demos offline e reprodutibilidade, mantendo a opção real disponível sem quebrar o contrato do grafo.
+## Testes e verificações
 
-## Testes
+Instala as dependências de desenvolvimento com `python -m pip install -e ".[dev]"` e executa a suite:
 
-```bash
-pytest -q
-ruff check src/argusloom/cli.py tests/unit/test_cli_demo.py tests/unit/test_cli_export.py tests/integration/test_end_to_end.py
-black --check src/argusloom/cli.py tests/unit/test_cli_demo.py tests/unit/test_cli_export.py tests/integration/test_end_to_end.py
+```powershell
+python -m pytest -q
 ```
 
-> Dívida técnica remanescente: `ruff`/`black` ainda não são completamente limpos em módulos legados (`analysis/`, `ingestion/`, testes F2–F5), e os endpoints antigos continuam como `dict[str, Any]` por decisão de retrofit adiado.
+Verificações de estilo:
 
-## Estrutura do repositório
-
-```text
-src/argusloom/
-  api/
-  analysis/
-  cti/
-  domain/
-  graph/
-  ingestion/
-  rag/
-  workflow/
-  cli.py
-
-tests/
-  integration/
-  unit/
+```powershell
+ruff check .
+black --check .
 ```
 
-## Limitações e trabalho futuro
+As verificações de acessibilidade do frontend e as instruções para executar axe estão em [frontend/README.md](./frontend/README.md). O estado destas verificações depende do ambiente e deve ser confirmado ao executá-las; este README não declara um resultado de teste permanente.
 
-- Retrofit de Pydantic nos endpoints antigos ficou fora do escopo da fase atual.
-- Multi-cloud, autenticação, e integração com produção real mais extensa não fazem parte do MVP.
-- CTI real em produção e orquestração mais robusta ficam como extensão natural após a tese e a defesa.
+## Limitações conhecidas
 
-## Referências
-
-### Obrigatórias
-- Requisitos do projeto e critérios do MVP (documento de requisitos do projeto, consultado na fase de análise).
-- Documentação de migração e modelação de ameaças para grafos de infraestrutura.
-- Regras de validação e critérios de entrega deste projeto final de Licenciatura.
-
-### Sugestidas
-- MITRE ATT&CK framework e ATLAS.
-- NVD CVE database e scoring CVSS.
-- Estruturas de retrieval por embeddings e ChromaDB.
-
-## Licença
-
-Este projeto está disponível sob a licença MIT, em linha com a convenção do repositório e com o uso académico do MVP.
+- O sistema modela os tipos de recursos e relações suportados pelos parsers atuais; não é um analisador completo de Terraform nem de Kubernetes.
+- O provider LLM mock é determinístico. A classe `OpenAIProvider` está deliberadamente indisponível nesta configuração e lança `NotImplementedError`; instalar a dependência opcional não ativa completions reais.
+- O cliente NVD real existe, mas o modo mock está ativo por omissão para manter as demos reprodutíveis e offline.
+- Os endpoints `/graph/analyze` e `/graph/remediation` recebem o grafo no corpo do pedido; endpoints de blast radius e caminhos de ataque usam o grafo ativo persistido em `data/graph.json`.
+- Autenticação, autorização, operação multi-cloud e garantias de produção não fazem parte do âmbito atual.

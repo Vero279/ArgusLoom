@@ -1,60 +1,40 @@
-# Mapeamento STRIDE
+# Mapeamento STRIDE implementado
 
+O código aplica STRIDE em dois pontos diferentes: o parser Terraform pode atribuir categorias diretamente a determinados recursos, e `analysis.threat_model` usa `STRIDE_DEFAULTS` quando um nó não tem categorias próprias. Os valores seguintes refletem o código atual; não são uma classificação exaustiva de ameaças.
 
+## Defaults da análise por `NodeKind`
 
-## Tabela `NodeKind` → `StrideCategory`
+| `NodeKind` | Categorias STRIDE usadas como default |
+|---|---|
+| `network` | Information Disclosure, Tampering, Denial of Service |
+| `data` | Tampering, Information Disclosure, Repudiation |
+| `storage` | Information Disclosure, Tampering |
+| `iam` | Spoofing, Elevation of Privilege |
+| `compute` | Denial of Service, Elevation of Privilege |
+| `external` | Information Disclosure |
 
+Se `node.stride` estiver preenchido, a análise usa essas categorias em vez de recorrer aos defaults do tipo. Caso contrário, consulta `STRIDE_DEFAULTS`.
 
+## Categorias atribuídas pelo parser Terraform
 
-| NodeKind | Categorias STRIDE | Justificação |
+| Tipo de recurso | Categorias atribuídas |
+|---|---|
+| `aws_security_group` | Information Disclosure, Elevation of Privilege |
+| `aws_db_instance` | Tampering, Information Disclosure |
+| `aws_lambda_function` | Elevation of Privilege |
+| Outros tipos tratados pelo parser | Lista vazia; aplicam-se os defaults por `NodeKind` durante a análise |
 
-|---|---|---|
+O parser associa o tipo AWS a um `NodeKind`; por exemplo, security groups e API Gateway são `network`, instâncias e Lambda são `compute`, bases de dados são `data` e buckets S3 são `storage`. O tipo de recurso e as categorias atribuídas são decisões heurísticas explícitas do parser.
 
-| `network` | Spoofing, Tampering, Information Disclosure, Denial of Service | Ingress público permite spoofing, DoS, exposição |
+## Exposição de recursos Terraform
 
-| `data` | Tampering, Information Disclosure, Repudiation | Dados sensíveis |
+O parser atribui valores heurísticos de `exposure` por tipo. Para `aws_security_group`, considera se existe conteúdo no atributo `ingress`; quando existe, define `0.8`, e quando não existe, `0.4`. O código não verifica se o CIDR é público ao determinar esse valor. Em separado, cria uma aresta `exposes` para `external.internet` quando encontra uma regra de ingress com `cidr_blocks`.
 
-| `storage` | Information Disclosure, Tampering | S3/buckets |
-
-| `iam` | Spoofing, Elevation of Privilege | Credenciais, roles |
-
-| `compute` | Denial of Service, Elevation of Privilege | Instâncias |
-
-| `external` | Information Disclosure | Serviços externos |
-
-
-
-> O código real em `analysis/threat_model.py` define `STRIDE_DEFAULTS` com estes valores em `NodeKind` e usa `stride` do grafo quando está presente; a tabela acima foi alinhada ao que existe no código e não ao enunciado genérico.
-
-
-
-## Heurísticas aplicadas
-
-
-
-- `aws_security_group` com `ingress` público (`0.0.0.0/0`) eleva `spoofing` e `tampering` por exposição de superfície de entrada.
-
-- `aws_db_instance` e `aws_s3_bucket` inherit `information_disclosure` e `tampering` por conterem dados sensíveis ou armazenamento persistente.
-
-- `aws_iam_role` e `ServiceAccount` implicam `spoofing`/`elevation_of_privilege` por atribuição de identidade e escopo de privilégio.
-
-- `aws_instance`, `Deployment` e `StatefulSet` têm `denial_of_service` ou `elevation_of_privilege` por serem workload executáveis.
-
-- `Ingress` e `Service` de rede são tratados como `network` e expõem pontos de entrada públicos.
-
-
+Outros valores implementados incluem `0.6` para API Gateway, `0.5` para EC2 (`aws_instance`), `0.7` para S3 (`aws_s3_bucket`) e `0.2` para os restantes tipos. Estes valores não substituem uma análise de regras de firewall nem devem ser interpretados como probabilidades.
 
 ## Limitações
 
-
-
-O mapeamento STRIDE é heurístico e não cobre falhas de cadeia de produção, race conditions, vulnerabilidades zero-day, abuso de API sem endpoint exposto, ou ataques de configuração multi-cloud. Também não modela dependências temporais, contaminação de cache ou falhas de integração entre serviços que exigem contexto operacional mais rico.
-
-
-
-## Referência a eixo científico
-
-
-
-O requisito #5 do projeto materializa a uncertainty quantification mínima no campo `confidence` das findings e das arestas. Em termos práticos, a análise de risco não presume certezas absolutas: a pontuação e a confiança ajudam a distinguir evidência direta de inferência heurística, sem transformar a classificação STRIDE num modelo probabilístico completo.
-
+- O mapeamento depende dos tipos e atributos explicitamente tratados nos parsers.
+- As categorias por tipo são heurísticas; não expressam uma avaliação contextual completa de ameaça.
+- O parser Terraform não deteta, através do cálculo de exposição do security group, se um CIDR permite acesso público; a criação da aresta `exposes` apenas verifica a presença de `cidr_blocks`.
+- A análise não modela, por si só, vulnerabilidades zero-day, sequência temporal de eventos, identidade operacional completa ou todos os caminhos de abuso de API.
