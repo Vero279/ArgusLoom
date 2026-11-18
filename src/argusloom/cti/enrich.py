@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import re
 from copy import deepcopy
+from typing import Any, Protocol
 
 from argusloom.cti.mitre_loader import MITRELoader
-from argusloom.cti.nvd_client import NVDClient
 from argusloom.domain.enums import NodeKind
 from argusloom.domain.graph import Graph, GraphNode
 
@@ -29,10 +29,18 @@ _KIND_KEYWORDS = {
 }
 
 
+class _CPEMatcher(Protocol):
+    def cves_for_metadata(self, metadata: dict[str, Any]) -> list[dict[str, Any]]: ...
+
+
 class CTIEnricher:
-    def __init__(self, nvd: NVDClient, mitre: MITRELoader) -> None:
-        self.nvd = nvd
+    def __init__(
+        self,
+        mitre: MITRELoader,
+        cpe_matcher: _CPEMatcher | None = None,
+    ) -> None:
         self.mitre = mitre
+        self.cpe_matcher = cpe_matcher
 
     @staticmethod
     def _keywords_for_node(node: GraphNode) -> list[str]:
@@ -60,18 +68,22 @@ class CTIEnricher:
     def enrich(self, graph: Graph) -> Graph:
         enriched = Graph(nodes=deepcopy(graph.nodes), edges=deepcopy(graph.edges))
         for node in enriched.nodes:
-            matched_cves = {}
+            matched_cves = (
+                self.cpe_matcher.cves_for_metadata(node.metadata)
+                if self.cpe_matcher is not None
+                else []
+            )
             matched_techniques = {}
             for keyword in self._keywords_for_node(node):
-                for cve in self.nvd.fetch_cves_for_keyword(keyword):
-                    matched_cves[cve.id] = cve
                 for technique in self.mitre.find_by_keyword(keyword):
                     matched_techniques[technique.id] = technique
 
-            node.cves = sorted(matched_cves)
+            node.cves = sorted(
+                cve["id"] for cve in matched_cves if isinstance(cve.get("id"), str)
+            )
             node.mitre_techniques = sorted(matched_techniques)
             node.cvss_max = (
-                max(cve.cvss_score for cve in matched_cves.values())
+                max(float(cve["score"]) for cve in matched_cves)
                 if matched_cves
                 else self._fallback_cvss(node)
             )

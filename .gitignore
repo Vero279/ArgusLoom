@@ -19,6 +19,11 @@ htmlcov/
 data/chroma/
 data/cti_cache.db
 
+# Local Terraform and LocalStack state
+**/.terraform/
+*.tfstate
+*.tfstate.*
+
 # Local one-off inspection helpers
 check_graph.py
 show_edges.py

@@ -1,7 +1,14 @@
 import type { AttackPathResponse, GraphData, GraphNode } from '../api';
 import { cveById, techniqueById } from '../data/threatIntel';
 import { getStride, incidentConfidence, scoreNode, severityForCvss } from '../security';
-import { deriveFamily, deriveRisk, familyLabels, riskLabels } from '../visualEncoding';
+import {
+  deriveFamily,
+  deriveRisk,
+  familyLabels,
+  hasCheckovFinding,
+  isPoisonedNode,
+  riskLabels,
+} from '../visualEncoding';
 import ConfidenceBar from './ConfidenceBar';
 import CTICard from './CTICard';
 import RiskBadge from './RiskBadge';
@@ -115,6 +122,8 @@ export default function DetailPanel({
   const exposureText = node.exposure > 0.7 ? 'exposto' : 'com exposição limitada';
   const visualRisk = deriveRisk(node);
   const family = deriveFamily(node);
+  const poisoned = isPoisonedNode(node);
+  const hasFinding = hasCheckovFinding(node);
   const rationale = `Este ativo tem exposure=${node.exposure.toFixed(2)} (${exposureText}), criticality=${node.criticality}, ${node.cves.length} CVE(s) e cvss_max=${node.cvss_max.toFixed(1)}. Recebe ${incoming.length} ligação(ões) e emite ${outgoing.length}. STRIDE: ${stride.map((value) => value.replace(/_/g, ' ')).join(', ')}${inferredStride ? ' (inferido pelo tipo)' : ''}. O score local do modelo é ${scoreNode(node, graph).toFixed(2)}.`;
   const confidence = incidentConfidence(node, graph);
 
@@ -136,6 +145,12 @@ export default function DetailPanel({
         <div><dt>Ligações recebidas</dt><dd>{incoming.length}</dd></div>
         <div><dt>Ligações emitidas</dt><dd>{outgoing.length}</dd></div>
       </dl>
+      {(poisoned || hasFinding) && (
+        <section className="detail-section" aria-label="Proveniência de segurança">
+          {poisoned && <p className="error-message" role="status">Documento CTI sintético/poisoned associado a este ativo.</p>}
+          {hasFinding && <p className="error-message" role="status">Este ativo tem findings Checkov associados.</p>}
+        </section>
+      )}
 
       <section className="detail-section" aria-labelledby="risk-rationale-heading">
         <h3 id="risk-rationale-heading">Porquê este risco?</h3>

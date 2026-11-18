@@ -19,6 +19,15 @@ class BlastRadiusResponse(BaseModel):
 class AttackPathsRequest(BaseModel):
     source_id: str
     target_id: str
+    waypoints: list[str] = Field(
+        default_factory=list,
+        min_length=0,
+        max_length=10,
+        description=(
+            "Optional ordered node IDs. When supplied, the path must follow "
+            "each directed edge in this exact sequence."
+        ),
+    )
     strategy: Literal["dijkstra", "yen"] = Field(
         default="dijkstra",
         description=(

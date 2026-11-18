@@ -1,0 +1,78 @@
+version: 1
+seed: 1729
+questions:
+  total: 30
+  pilot_cache_validation_per_model: 3
+models:
+  - id: llama3.2:3b
+    ollama_digest: a80c4f17acd5
+    architecture: llama
+    parameters_b: 3.2
+    quantization: Q4_K_M
+    context_length: 131072
+    embedding_length: 3072
+  - id: llama3.2:3b-instruct-q4_K_S
+    ollama_digest: 80f2089878c9
+    architecture: llama
+    parameters_b: 3.2
+    quantization: Q4_K_S
+    context_length: 131072
+    embedding_length: 3072
+  - id: qwen2.5:3b
+    ollama_digest: 357c53fb659c
+    architecture: qwen2
+    parameters_b: 3.1
+    quantization: Q4_K_M
+    context_length: 32768
+    embedding_length: 2048
+  - id: qwen2.5:3b-instruct-q4_K_S
+    ollama_digest: 3033a0ab2cfd
+    architecture: qwen2
+    parameters_b: 3.1
+    quantization: Q4_K_S
+    context_length: 32768
+    embedding_length: 2048
+  - id: phi3:mini
+    ollama_digest: 4f2222927938
+    architecture: phi3
+    parameters_b: 3.8
+    quantization: Q4_0
+    context_length: 131072
+    embedding_length: 3072
+methods:
+  greedy:
+    - verbalized_uncertainty_1s
+    - msp
+    - mte
+  stochastic:
+    - lexsim
+  lexsim_samples: 5
+  lexsim_samples_max: 10
+  lexsim_temperature: library_default
+scenarios:
+  - baseline
+  - post_attack
+  - control
+retrieval:
+  top_k: 5
+  embedding_model: all-MiniLM-L6-v2
+context:
+  candidate_num_ctx: [2048, 4096]
+  frozen_num_ctx: null
+  truncation_is_failure: true
+prompt:
+  version: null
+  approved: false
+  system_prompt_sha256: null
+  template_sha256: null
+cache:
+  identity_excludes_scenario: true
+  regenerate_control_questions_per_model: 3
+  exact_output_match_required: true
+model_efficiency:
+  measurement: codecarbon
+  workload_scenario: baseline
+  compare_workloads_separately:
+    - greedy
+    - lexsim
+  include_indexing_or_attack_phases: false

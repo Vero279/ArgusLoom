@@ -1,9 +1,15 @@
+from pathlib import Path
+
 import pytest
 
 from argusloom.domain.enums import Criticality, NodeKind
 from argusloom.domain.errors import NodeNotFound
 from argusloom.domain.graph import Graph, GraphEdge, GraphNode
-from argusloom.graph.pathfinding import find_attack_paths
+from argusloom.graph.pathfinding import (
+    find_attack_path_through_waypoints,
+    find_attack_paths,
+)
+from argusloom.graph.store import GraphStore
 
 
 def _graph_linear() -> Graph:
@@ -266,3 +272,37 @@ def test_find_attack_paths_rejects_bfs_strategy() -> None:
         raise AssertionError("Expected ValueError")
     except ValueError as exc:
         assert str(exc) == "strategy must be 'dijkstra' or 'yen'"
+
+
+def test_hybrid_primary_path_follows_explicit_waypoints() -> None:
+    graph = GraphStore(Path("data/graph_C.json")).load()
+    expected = [
+        "aws_security_group.public",
+        "aws_instance.web",
+        "aws_lambda_function.handler",
+        "aws_lambda_function.processor",
+        "aws_db_instance.database",
+    ]
+
+    path = find_attack_path_through_waypoints(graph, expected)
+
+    assert path.nodes == expected
+    assert [edge.relation for edge in path.edges] == [
+        "attached_to",
+        "depends_on",
+        "depends_on",
+        "depends_on",
+    ]
+
+
+def test_waypoint_path_does_not_reverse_dependency_edges() -> None:
+    graph = Graph(
+        nodes=[
+            GraphNode(id="consumer", kind=NodeKind.COMPUTE, name="consumer", source="fixture"),
+            GraphNode(id="dependency", kind=NodeKind.DATA, name="dependency", source="fixture"),
+        ],
+        edges=[GraphEdge(source="consumer", target="dependency", relation="depends_on")],
+    )
+
+    with pytest.raises(ValueError, match="No directed edge"):
+        find_attack_path_through_waypoints(graph, ["dependency", "consumer"])

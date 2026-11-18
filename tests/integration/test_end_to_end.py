@@ -1,9 +1,9 @@
 from pathlib import Path
 
 from argusloom.analysis.threat_model import analyze_graph
+from argusloom.cti.cpe_matcher import SnapshotCPEMatcher
 from argusloom.cti.enrich import CTIEnricher
 from argusloom.cti.mitre_loader import MITRELoader
-from argusloom.cti.nvd_client import MockNVDClient
 from argusloom.graph.blast_radius import compute_blast_radius
 from argusloom.graph.pathfinding import find_attack_paths
 from argusloom.graph.store import GraphStore
@@ -21,8 +21,12 @@ def test_full_pipeline_from_fixtures(tmp_path: Path) -> None:
     )
 
     mitre = MITRELoader(Path("data/mitre/attack.json"), Path("data/mitre/atlas.json"))
-    nvd = MockNVDClient(Path("data/fixtures/cves.json"))
-    enriched = CTIEnricher(nvd=nvd, mitre=mitre).enrich(graph)
+    cpe_matcher = SnapshotCPEMatcher.from_files(
+        Path.cwd(),
+        Path("data/cti_snapshot_manifest.json"),
+        Path("data/cpe_product_mappings.json"),
+    )
+    enriched = CTIEnricher(mitre=mitre, cpe_matcher=cpe_matcher).enrich(graph)
 
     output_path = tmp_path / "graph.json"
     GraphStore(output_path).save(enriched)

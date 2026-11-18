@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "model_id",
+    "model_digest",
+    "scenario",
+    "question_id",
+    "method",
+    "run_type",
+    "input",
+    "retrieved_context",
+    "output",
+    "score",
+    "hashes"
+  ],
+  "properties": {
+    "model_id": { "type": "string" },
+    "model_digest": { "type": "string" },
+    "scenario": { "enum": ["baseline", "post_attack", "control"] },
+    "question_id": { "type": "string" },
+    "method": { "enum": ["verbalized_uncertainty_1s", "lexsim", "msp", "mte"] },
+    "run_type": { "enum": ["greedy", "stochastic"] },
+    "seed": { "type": "integer" },
+    "input": {
+      "type": "object",
+      "required": ["question"],
+      "properties": {
+        "question": { "type": "string" },
+        "system_prompt_hash": { "type": "string" },
+        "template_version": { "type": "string" }
+      }
+    },
+    "retrieved_context": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["document_id", "text", "source", "snapshot_hash"],
+        "properties": {
+          "document_id": { "type": "string" },
+          "text": { "type": "string" },
+          "source": { "type": "string" },
+          "snapshot_hash": { "type": "string" }
+        }
+      }
+    },
+    "output": { "type": "string" },
+    "score": {
+      "type": "object",
+      "required": ["valid_json", "correct", "poisoned"],
+      "properties": {
+        "valid_json": { "type": "boolean" },
+        "correct": { "type": "boolean" },
+        "poisoned": { "type": "boolean" },
+        "mismatched_fields": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "uncertainty": { "type": ["number", "null"] },
+    "uncertainty_error": { "type": ["string", "null"] },
+    "latency_seconds": { "type": ["number", "null"], "minimum": 0 },
+    "model_eval_seconds": { "type": "number", "minimum": 0 },
+    "hashes": {
+      "type": "object",
+      "required": ["corpus", "prompt", "retrieval", "decoding"],
+      "properties": {
+        "corpus": { "type": "string" },
+        "prompt": { "type": "string" },
+        "retrieval": { "type": "string" },
+        "decoding": { "type": "string" }
+      }
+    }
+  }
+}

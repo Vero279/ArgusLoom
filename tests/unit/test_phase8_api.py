@@ -33,7 +33,7 @@ def test_cti_enrich_endpoint_returns_enriched_graph() -> None:
     assert response.status_code == 200
     nodes = response.json()["graph"]["nodes"]
     assert any(node["mitre_techniques"] for node in nodes)
-    assert any(node["cves"] for node in nodes)
+    assert all(not node["cves"] for node in nodes)
 
 
 def test_cti_enrich_endpoint_reports_enriched_node_count() -> None:

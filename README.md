@@ -115,6 +115,39 @@ As verificações de acessibilidade do frontend e as instruções para executar 
 
 - O sistema modela os tipos de recursos e relações suportados pelos parsers atuais; não é um analisador completo de Terraform nem de Kubernetes.
 - O provider LLM mock é determinístico. A classe `OpenAIProvider` está deliberadamente indisponível nesta configuração e lança `NotImplementedError`; instalar a dependência opcional não ativa completions reais.
-- O cliente NVD real existe, mas o modo mock está ativo por omissão para manter as demos reprodutíveis e offline.
+- As ligações CVE-nó são calculadas apenas por correspondência CPE 2.3, versão declarada e mapeamento produto-CPE verificado; a pesquisa textual de CVEs não cria associações.
+- As versões do engine RDS e do runtime Lambda são atributos de serviços geridos; tratá-los como software instalado para correspondência CPE é uma hipótese de modelação, não uma afirmação sobre o sistema operativo ou os componentes internos do fornecedor. As tags de software EC2 também são declarações do fixture, não deteção de pacotes.
 - Os endpoints `/graph/analyze` e `/graph/remediation` recebem o grafo no corpo do pedido; endpoints de blast radius e caminhos de ataque usam o grafo ativo persistido em `data/graph.json`.
 - Autenticação, autorização, operação multi-cloud e garantias de produção não fazem parte do âmbito atual.
+
+## Demonstração experimental LLM08 (em preparação)
+
+A infraestrutura local isolada está em `infra/localstack/` e `infra/llm08/`. O Compose publica LocalStack apenas em `127.0.0.1:4566`; os dois diretórios Terraform fixam o endpoint S3 local. O código de injeção fica exclusivamente em `tests/integration/llm08/` e recusa endpoints não locais.
+
+O caminho de ataque primário de demonstração usa as arestas no sentido guardado no grafo: `attached_to` vai do security group para o recurso; `depends_on` vai do consumidor para a dependência. O percurso é constrained pelos waypoints `aws_security_group.public`, `aws_instance.web`, `aws_lambda_function.handler`, `aws_lambda_function.processor` e `aws_db_instance.database`. A ligação direta do security group ao handler permanece uma entrada alternativa.
+
+Os helpers para snapshots e re-indexação estão em `src/argusloom/cti/`; cache, scoring exato e cliente Ollama local estão em `src/argusloom/evaluation/`. A configuração versionada está em `experiments/matrix.yaml`; as tabelas podem ser agregadas por `python -m reports.metrics`.
+
+**A matriz ainda não está pronta para execução.** `data/cti_snapshot_manifest.json` marca os fixtures MITRE como não elegíveis porque não têm proveniência de release. O snapshot NVD de `CVE-2018-16603` descreve FreeRTOS, não a instância de base de dados à qual o grafo fixture o associa. A execução fica bloqueada até haver snapshots curados com proveniência, um gold set de 30 perguntas, aprovação do prompt e seleção de `num_ctx` pelo piloto. O preflight pode ser verificado com:
+
+```powershell
+python -m experiments.preflight
+```
+
+### Descoberta local de CPE e CVEs (Stage A)
+
+Nenhuma chamada NVD é feita automaticamente. Depois de instalar o projeto em modo editável (`python -m pip install -e .`), execute localmente a descoberta do dicionário CPE e, em seguida, as consultas pelos nomes CPE exatos gerados:
+
+```powershell
+python scripts\fetch_nvd_snapshots.py --discover-product nginx
+python scripts\fetch_nvd_snapshots.py --discover-product postgresql
+python scripts\fetch_nvd_snapshots.py --cpe-names data\nvd\candidate_cpe_names_nginx.txt
+python scripts\fetch_nvd_snapshots.py --cpe-names data\nvd\candidate_cpe_names_postgresql.txt
+python scripts\summarize_cpe_candidates.py
+```
+
+O programa usa páginas CVE de até 2.000 resultados e páginas do dicionário CPE de até 10.000, conforme a documentação oficial das [Vulnerability APIs](https://nvd.nist.gov/developers/vulnerabilities) e [Product APIs](https://nvd.nist.gov/developers/products). A consulta `cveIds` e a consulta de nome exato `cpeName` são modos separados; `cpeName` exige componentes part/vendor/product/version explícitos. Sem chave, o cliente limita a 5 pedidos por janela de 30 segundos; com `NVD_API_KEY`, limita a 50 por janela e envia a chave apenas no header. Respostas 403/429 são repetidas com `Retry-After` ou backoff.
+
+As respostas são guardadas sem transformação em `data/nvd/snapshots/` e cada página recebe SHA-256 em `data/cti_snapshot_manifest.json`. Uma consulta já guardada é imutável: repetir exige `--refetch --manifest-version <versão-maior>`. `data/cpe_product_mappings.json` regista candidatos com snapshot/hash de origem e estado `pending`; a aprovação do mapeamento é manual. `data/cpe_version_candidates.json` contém apenas as versões candidatas já aprovadas para descoberta, não versões declaradas nos fixtures. O resumo é offline e mostra `NOT_FETCHED` até existir snapshot exato. Não executar a descoberta mantém o inventário e os snapshots atuais intactos.
+
+O extra opcional `[experiments]` contém as dependências para CodeCarbon, LM-Polygraph, Checkov e boto3; não é necessário para executar a aplicação normal.

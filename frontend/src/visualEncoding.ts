@@ -39,3 +39,12 @@ export function deriveFamily(node: Pick<GraphNode, 'kind'>): NodeFamily {
   if (kind === 'compute' || kind === 'storage') return 'compute';
   return 'data';
 }
+
+export function isPoisonedNode(node: Pick<GraphNode, 'metadata'>): boolean {
+  return node.metadata?.poisoned === true;
+}
+
+export function hasCheckovFinding(node: Pick<GraphNode, 'metadata'>): boolean {
+  const findings = node.metadata?.checkov_findings;
+  return Array.isArray(findings) && findings.length > 0;
+}

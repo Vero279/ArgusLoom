@@ -300,3 +300,58 @@ def find_attack_paths(
 
     result.sort(key=lambda path: (path.score, tuple(path.nodes)))
     return result[:1] if strategy == "dijkstra" else result[:top_k]
+
+
+def find_attack_path_through_waypoints(
+    graph: Graph,
+    waypoint_ids: list[str],
+) -> AttackPath:
+    """Return a path consisting of the supplied nodes in their supplied order.
+
+    Edges are followed only in their stored direction. In particular,
+    ``attached_to`` is traversed from security group to attached resource and
+    ``depends_on`` from consumer to dependency. This lets a scenario require an
+    intermediate node even when a shorter alternate route exists.
+    """
+
+    if len(waypoint_ids) < 2:
+        raise ValueError("at least two waypoint_ids are required")
+
+    node_by_id = {node.id: node for node in graph.nodes}
+    for node_id in waypoint_ids:
+        if node_id not in node_by_id:
+            raise NodeNotFound(node_id)
+
+    path_edges: list[GraphEdge] = []
+    for source_id, target_id in pairwise(waypoint_ids):
+        candidates = [
+            edge
+            for edge in graph.edges
+            if edge.source == source_id
+            and edge.target == target_id
+            and edge.relation in {"attached_to", "depends_on"}
+        ]
+        if not candidates:
+            raise ValueError(
+                f"No directed edge exists from '{source_id}' to '{target_id}'"
+            )
+        path_edges.append(
+            min(
+                candidates,
+                key=lambda edge: (_edge_cost(graph, edge), edge.relation),
+            )
+        )
+
+    score = sum(_edge_cost(graph, edge) for edge in path_edges)
+    mitre_chain = [
+        str(edge.metadata["mitre_technique"])
+        for edge in path_edges
+        if edge.metadata.get("mitre_technique") is not None
+    ]
+    return AttackPath(
+        nodes=list(waypoint_ids),
+        edges=path_edges,
+        score=float(score),
+        mitre_chain=mitre_chain,
+        length=len(path_edges),
+    )

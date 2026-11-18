@@ -295,9 +295,7 @@
         "tampering",
         "information_disclosure"
       ],
-      "cves": [
-        "CVE-2018-16603"
-      ],
+      "cves": [],
       "mitre_techniques": [
         "AML.T0020",
         "AML.T0057",
@@ -309,7 +307,7 @@
         "T1530",
         "T1560"
       ],
-      "cvss_max": 5.9
+      "cvss_max": 7.5
     },
     {
       "id": "aws_lambda_function.handler",
@@ -478,9 +476,7 @@
         "tampering",
         "information_disclosure"
       ],
-      "cves": [
-        "CVE-2018-16603"
-      ],
+      "cves": [],
       "mitre_techniques": [
         "AML.T0020",
         "AML.T0049",
@@ -494,7 +490,7 @@
         "T1530",
         "T1560"
       ],
-      "cvss_max": 5.9
+      "cvss_max": 7.5
     },
     {
       "id": "aws_db_instance.internal_warehouse",
@@ -519,9 +515,7 @@
         "tampering",
         "information_disclosure"
       ],
-      "cves": [
-        "CVE-2018-16603"
-      ],
+      "cves": [],
       "mitre_techniques": [
         "AML.T0020",
         "AML.T0057",
@@ -533,7 +527,7 @@
         "T1530",
         "T1560"
       ],
-      "cvss_max": 5.9
+      "cvss_max": 7.5
     },
     {
       "id": "aws_lambda_function.queue_worker",
@@ -562,16 +556,14 @@
       "stride": [
         "elevation_of_privilege"
       ],
-      "cves": [
-        "CVE-2021-31571"
-      ],
+      "cves": [],
       "mitre_techniques": [
         "T1053",
         "T1059",
         "T1547",
         "T1611"
       ],
-      "cvss_max": 9.8
+      "cvss_max": 5.0
     },
     {
       "id": "aws_lambda_function.s3_writer",

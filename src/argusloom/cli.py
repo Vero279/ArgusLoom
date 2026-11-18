@@ -12,9 +12,9 @@ import typer
 from argusloom import __version__
 from argusloom.analysis.threat_model import analyze_graph
 from argusloom.config import get_settings
+from argusloom.cti.cpe_matcher import SnapshotCPEMatcher
 from argusloom.cti.enrich import CTIEnricher
 from argusloom.cti.mitre_loader import MITRELoader
-from argusloom.cti.nvd_client import MockNVDClient
 from argusloom.graph.pathfinding import find_attack_paths
 from argusloom.graph.store import GraphStore
 from argusloom.ingestion.graph_builder import build_graph
@@ -36,12 +36,19 @@ def _build_enriched_graph() -> object:
         k8s_path=root / "data/fixtures/k8s",
         output_path=None,
     )
-    nvd_client = MockNVDClient(root / "data/fixtures/cves.json")
     mitre_loader = MITRELoader(
         root / "data/mitre/attack.json",
         root / "data/mitre/atlas.json",
     )
-    enriched = CTIEnricher(nvd=nvd_client, mitre=mitre_loader).enrich(graph)
+    cpe_matcher = SnapshotCPEMatcher.from_files(
+        root,
+        root / "data/cti_snapshot_manifest.json",
+        root / "data/cpe_product_mappings.json",
+    )
+    enriched = CTIEnricher(
+        mitre=mitre_loader,
+        cpe_matcher=cpe_matcher,
+    ).enrich(graph)
     GraphStore(root / "data/graph.json").save(enriched)
     return enriched
 

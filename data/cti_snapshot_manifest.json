@@ -1,0 +1,37 @@
+{
+  "manifest_version": 1,
+  "status": "incomplete",
+  "notice": "The raw NVD record is committed. Existing ATT&CK/ATLAS JSON files remain fixtures without upstream release provenance; this manifest is not experiment-ready.",
+  "snapshots": [
+    {
+      "path": "data/nvd/CVE-2018-16603.json",
+      "source": "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2018-16603",
+      "retrieved_at_utc": "2026-11-18",
+      "format": "raw-nvd-api-2.0",
+      "sha256": "98DD117158118D1EACE0753BC54616E5B1D6D31FB1D9908CA104E2B1BB74AF8A",
+      "experiment_eligible": false,
+      "eligibility_note": "The NVD description is for FreeRTOS, not aws_db_instance.database. The graph association is not verified applicability."
+    },
+    {
+      "path": "data/fixtures/cves.json",
+      "source": "Existing repository fixture; upstream source and retrieval version not recorded.",
+      "format": "fixture-json",
+      "sha256": "120828ABEC389F8C017E45FF2C46F32BC68930E6CCAF0D5F08F1C0A1A086DDB3",
+      "experiment_eligible": false
+    },
+    {
+      "path": "data/mitre/attack.json",
+      "source": "Existing repository fixture; ATT&CK release and retrieval version not recorded.",
+      "format": "fixture-json",
+      "sha256": "258355D1D10D121F40B3BC173E7D39B4FB6A8CEE4D7EA26DBD8D8084D417FAD3",
+      "experiment_eligible": false
+    },
+    {
+      "path": "data/mitre/atlas.json",
+      "source": "Existing repository fixture; ATLAS release and retrieval version not recorded.",
+      "format": "fixture-json",
+      "sha256": "DA295170824A70F8687F32C84AE6BF19DB18AC924710CD80EE1C41B328F5605C",
+      "experiment_eligible": false
+    }
+  ]
+}

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import structlog
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -24,7 +24,10 @@ from argusloom.domain.enums import Criticality, NodeKind, StrideCategory
 from argusloom.domain.errors import NodeNotFound
 from argusloom.domain.graph import Graph, GraphEdge, GraphNode
 from argusloom.graph.blast_radius import compute_blast_radius
-from argusloom.graph.pathfinding import find_attack_paths
+from argusloom.graph.pathfinding import (
+    find_attack_path_through_waypoints,
+    find_attack_paths,
+)
 from argusloom.graph.store import GraphStore
 from argusloom.workflow.remediation import build_remediation_plan
 
@@ -179,13 +182,29 @@ def create_app() -> FastAPI:
     @app.post("/attack-paths")
     def attack_paths_endpoint(payload: AttackPathsRequest) -> AttackPathResponse:
         graph = _load_graph_from_store()
-        paths = find_attack_paths(
-            graph,
-            payload.source_id,
-            payload.target_id,
-            strategy=payload.strategy,
-            top_k=payload.top_k,
-        )
+        if payload.waypoints:
+            if (
+                payload.waypoints[0] != payload.source_id
+                or payload.waypoints[-1] != payload.target_id
+            ):
+                raise HTTPException(
+                    status_code=422,
+                    detail="waypoints must start with source_id and end with target_id",
+                )
+            try:
+                paths = [
+                    find_attack_path_through_waypoints(graph, payload.waypoints)
+                ]
+            except ValueError as exc:
+                raise HTTPException(status_code=422, detail=str(exc)) from exc
+        else:
+            paths = find_attack_paths(
+                graph,
+                payload.source_id,
+                payload.target_id,
+                strategy=payload.strategy,
+                top_k=payload.top_k,
+            )
         logger.info(
             "attack_paths.computed",
             source_id=payload.source_id,

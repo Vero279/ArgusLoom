@@ -16,6 +16,11 @@ def _normalize_tf_value(value: Any) -> Any:
     if isinstance(value, str):
         stripped = value.strip().strip('"')
         return stripped
+    if isinstance(value, dict):
+        return {
+            key: _normalize_tf_value(nested_value)
+            for key, nested_value in value.items()
+        }
     if isinstance(value, list):
         return [_normalize_tf_value(item) for item in value]
     return value
@@ -100,6 +105,48 @@ def _resource_kind(resource_type: str) -> NodeKind:
     return NodeKind.EXTERNAL
 
 
+def _software_inventory(
+    resource_type: str,
+    attributes: dict[str, Any],
+) -> list[dict[str, str]]:
+    inventory: list[dict[str, str]] = []
+    if resource_type == "aws_db_instance":
+        engine = str(attributes.get("engine", "")).casefold()
+        if engine:
+            inventory.append(
+                {
+                    "software_key": "postgresql" if engine == "postgres" else engine,
+                    "version": str(attributes.get("engine_version", "")),
+                    "managed_service": "true",
+                }
+            )
+    elif resource_type == "aws_lambda_function":
+        runtime = str(attributes.get("runtime", ""))
+        match = re.fullmatch(r"python(\d+\.\d+)", runtime)
+        if match:
+            inventory.append(
+                {
+                    "software_key": "python",
+                    "version": match.group(1),
+                    "managed_service": "true",
+                }
+            )
+
+    tags = attributes.get("tags", {})
+    if resource_type == "aws_instance" and isinstance(tags, dict):
+        software = tags.get("ArgusLoomSoftware")
+        version = tags.get("ArgusLoomSoftwareVersion")
+        if isinstance(software, str) and isinstance(version, str):
+            inventory.append(
+                {
+                    "software_key": software.casefold(),
+                    "version": version,
+                    "managed_service": "false",
+                }
+            )
+    return inventory
+
+
 def _load_tf_files(root: Path) -> list[dict[str, Any]]:
     if not root.exists():
         return []
@@ -153,7 +200,11 @@ def parse_terraform_directory(path: str | Path) -> tuple[list[GraphNode], list[G
             source="terraform",
             criticality=_infer_criticality(resource_type, attrs),
             exposure=_infer_exposure(resource_type, attrs),
-            metadata={"resource_type": resource_type, "attributes": attrs},
+            metadata={
+                "resource_type": resource_type,
+                "attributes": attrs,
+                "software_inventory": _software_inventory(resource_type, attrs),
+            },
             stride=_infer_stride(resource_type),
         )
         nodes.append(node)

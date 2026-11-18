@@ -16,9 +16,9 @@ import tempfile
 from contextlib import ExitStack
 from pathlib import Path
 
+from argusloom.cti.cpe_matcher import SnapshotCPEMatcher
 from argusloom.cti.enrich import CTIEnricher
 from argusloom.cti.mitre_loader import MITRELoader
-from argusloom.cti.nvd_client import MockNVDClient
 from argusloom.domain.graph import Graph
 from argusloom.ingestion.graph_builder import build_graph
 
@@ -46,10 +46,14 @@ def _build_scenario_graph(scenario: str) -> Graph:
         )
 
     enricher = CTIEnricher(
-        nvd=MockNVDClient(ROOT / "data/fixtures/cves.json"),
         mitre=MITRELoader(
             ROOT / "data/mitre/attack.json",
             ROOT / "data/mitre/atlas.json",
+        ),
+        cpe_matcher=SnapshotCPEMatcher.from_files(
+            ROOT,
+            ROOT / "data/cti_snapshot_manifest.json",
+            ROOT / "data/cpe_product_mappings.json",
         ),
     )
     return enricher.enrich(graph)

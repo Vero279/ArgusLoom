@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { NodeKind } from './api';
-import { deriveFamily, deriveRisk } from './visualEncoding';
+import {
+  deriveFamily,
+  deriveRisk,
+  hasCheckovFinding,
+  isPoisonedNode,
+} from './visualEncoding';
 
 describe('graph visual encoding', () => {
   it('uses positive CVSS thresholds before criticality', () => {
@@ -16,5 +21,14 @@ describe('graph visual encoding', () => {
     const families = kinds.map((kind) => deriveFamily({ kind }));
 
     expect(families).toEqual(['network', 'network', 'compute', 'compute', 'data', 'data']);
+  });
+
+  it('recognises poisoned nodes and Checkov findings from metadata', () => {
+    expect(isPoisonedNode({ metadata: { poisoned: true } })).toBe(true);
+    expect(
+      hasCheckovFinding({ metadata: { checkov_findings: [{ check_id: 'CKV_X' }] } }),
+    ).toBe(true);
+    expect(isPoisonedNode({ metadata: {} })).toBe(false);
+    expect(hasCheckovFinding({ metadata: { checkov_findings: [] } })).toBe(false);
   });
 });

@@ -8,10 +8,9 @@ from typing import Any
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from argusloom.config import get_settings
+from argusloom.cti.cpe_matcher import SnapshotCPEMatcher
 from argusloom.cti.enrich import CTIEnricher
 from argusloom.cti.mitre_loader import MITRELoader
-from argusloom.cti.nvd_client import MockNVDClient, RealNVDClient
 from argusloom.domain.enums import Criticality, NodeKind, StrideCategory
 from argusloom.domain.graph import Graph, GraphEdge, GraphNode
 
@@ -59,23 +58,20 @@ def _graph_from_payload(payload: dict[str, Any]) -> Graph:
 
 @router.post("/enrich")
 def enrich_cti(request: CTIEnrichRequest) -> dict[str, Any]:
-    settings = get_settings()
-    if settings.use_mock_nvd:
-        nvd_client = MockNVDClient(Path("data/fixtures/cves.json"))
-    else:
-        nvd_client = RealNVDClient(
-            cache_path=Path("data/cti_cache.db"),
-            api_key=settings.nvd_api_key,
-            timeout=settings.nvd_timeout_seconds,
-            ttl_days=settings.nvd_cache_ttl_days,
-        )
-
     mitre_loader = MITRELoader(
         attack_path=Path("data/mitre/attack.json"),
         atlas_path=Path("data/mitre/atlas.json"),
     )
+    cpe_matcher = SnapshotCPEMatcher.from_files(
+        Path.cwd(),
+        Path("data/cti_snapshot_manifest.json"),
+        Path("data/cpe_product_mappings.json"),
+    )
     graph = _graph_from_payload(request.graph)
-    enriched = CTIEnricher(nvd=nvd_client, mitre=mitre_loader).enrich(graph)
+    enriched = CTIEnricher(
+        mitre=mitre_loader,
+        cpe_matcher=cpe_matcher,
+    ).enrich(graph)
     enriched_count = sum(
         bool(node.cves or node.mitre_techniques or node.cvss_max > 0)
         for node in enriched.nodes

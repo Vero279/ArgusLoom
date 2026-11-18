@@ -2,7 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import CytoscapeComponent from 'react-cytoscapejs';
 import type cytoscape from 'cytoscape';
 import type { GraphEdge, GraphNode } from '../api';
-import { deriveFamily, deriveRisk, familyLabels, familySymbols } from '../visualEncoding';
+import {
+  deriveFamily,
+  deriveRisk,
+  familyLabels,
+  familySymbols,
+  hasCheckovFinding,
+  isPoisonedNode,
+} from '../visualEncoding';
 
 export interface GraphHighlight {
   kind: 'blast' | 'path';
@@ -71,6 +78,8 @@ export default function GraphCanvas({
         criticality: node.criticality,
         cvss: node.cvss_max,
         exposure: node.exposure,
+        poisoned: isPoisonedNode(node),
+        checkovFinding: hasCheckovFinding(node),
       },
     })),
     ...edges.map((edge, index) => ({
@@ -103,6 +112,8 @@ export default function GraphCanvas({
       },
     },
     { selector: 'node[exposure > 0.7]', style: { 'border-style': 'dashed', 'border-width': 3 } },
+    { selector: 'node[checkovFinding = true]', style: { 'border-color': '#FF5A5F', 'border-width': 4, 'border-style': 'dashed' } },
+    { selector: 'node[poisoned = true]', style: { 'border-color': '#D946EF', 'border-width': 5, 'border-style': 'double' } },
     { selector: 'node[risk="critical"]', style: { shape: 'ellipse', 'background-color': '#FF5A5F' } },
     { selector: 'node[risk="high"]', style: { shape: 'hexagon', 'background-color': '#FFB020' } },
     { selector: 'node[risk="medium"]', style: { shape: 'rectangle', 'background-color': '#4A9EFF' } },
@@ -368,7 +379,7 @@ export default function GraphCanvas({
         const nodeData = event.target.data();
         const family = deriveFamily({ kind: nodeData.kind });
         setTooltip({
-          text: `${nodeData.fullId} · ${nodeData.kind} · ${familyLabels[family]}`,
+          text: `${nodeData.fullId} · ${nodeData.kind} · ${familyLabels[family]}${nodeData.poisoned ? ' · CTI envenenada' : ''}${nodeData.checkovFinding ? ' · finding Checkov' : ''}`,
           x: position.x,
           y: position.y,
         });
