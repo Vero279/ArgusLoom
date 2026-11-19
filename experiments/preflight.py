@@ -4,10 +4,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
 
 from argusloom.cti.snapshots import verify_snapshot_manifest
 
@@ -22,6 +26,9 @@ def collect_preflight_blockers(repository_root: str | Path) -> list[str]:
         blockers.append("matrix must retain N=30")
     if matrix.get("methods", {}).get("lexsim_samples") != 5:
         blockers.append("LexSim must default to S=5")
+    reserved_scenarios = matrix.get("retrieval", {}).get("reserved_scenarios")
+    if reserved_scenarios != ["no_retrieval"]:
+        blockers.append("matrix retrieval compatibility must reserve no_retrieval")
     if matrix.get("prompt", {}).get("approved") is not True:
         blockers.append("shared system prompt and template are not approved")
     if not isinstance(matrix.get("context", {}).get("frozen_num_ctx"), int):
@@ -30,13 +37,32 @@ def collect_preflight_blockers(repository_root: str | Path) -> list[str]:
     manifest_path = root / "data" / "cti_snapshot_manifest.json"
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        verify_snapshot_manifest(root, manifest_path)
         if manifest.get("status") != "ready":
             blockers.append("CTI snapshot manifest is not marked ready")
+        verify_snapshot_manifest(root, manifest_path)
         if any(not entry.get("experiment_eligible", False) for entry in manifest["snapshots"]):
             blockers.append("one or more CTI snapshots are not experiment-eligible")
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         blockers.append(f"CTI snapshot verification failed: {exc}")
+
+    mapping_path = root / "data" / "cpe_product_mappings.json"
+    try:
+        mapping = json.loads(mapping_path.read_text(encoding="utf-8"))
+        entries = mapping.get("entries")
+        if not isinstance(entries, list):
+            blockers.append("CPE product mapping table must contain an entries list")
+        elif mapping.get("status") != "verified":
+            blockers.append("CPE product mappings have not been verified")
+        elif any(
+            not isinstance(item, dict)
+            or item.get("verification_status") != "verified"
+            or not item.get("source_snapshot")
+            or not item.get("source_sha256")
+            for item in entries
+        ):
+            blockers.append("CPE product mappings need verified source snapshots")
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        blockers.append(f"CPE product mapping verification failed: {exc}")
 
     questions_path = root / "experiments" / "questions.json"
     if not questions_path.is_file():

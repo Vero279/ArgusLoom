@@ -136,6 +136,14 @@ python -m experiments.preflight
 
 ### Descoberta local de CPE e CVEs (Stage A)
 
+Plano aprovado, incluindo a decisão de manter a descoberta separada da escolha de versão:
+
+1. A descoberta usa a API local do operador, nunca é executada por este repositório.
+2. A etapa seguinte escolhe manualmente o mapeamento produto→CPE e a versão a declarar.
+3. Não declarar versões nginx/postgresql no Terraform até essa escolha ser feita.
+4. Lambda é aceite como inventário sem uma CPE candidata ou CVE de destino obrigatório.
+5. A compatibilidade da fase C mantém `no_retrieval` como cenário reservado, mas não o implementa nesta etapa.
+
 Nenhuma chamada NVD é feita automaticamente. Depois de instalar o projeto em modo editável (`python -m pip install -e .`), execute localmente a descoberta do dicionário CPE e, em seguida, as consultas pelos nomes CPE exatos gerados:
 
 ```powershell

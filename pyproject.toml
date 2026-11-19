@@ -42,7 +42,7 @@ experiments = [
 argusloom = "argusloom.cli:app"
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 testpaths = ["tests"]
 
 [tool.setuptools]

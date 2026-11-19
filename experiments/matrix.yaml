@@ -56,6 +56,8 @@ scenarios:
 retrieval:
   top_k: 5
   embedding_model: all-MiniLM-L6-v2
+  reserved_scenarios:
+    - no_retrieval
 context:
   candidate_num_ctx: [2048, 4096]
   frozen_num_ctx: null
