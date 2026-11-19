@@ -1,6 +1,5 @@
 import pytest
 
-from tests.integration.llm08 import attack
 from tests.integration.llm08 import localstack
 from tests.integration.llm08.attack import build_forged_document, inject_document
 

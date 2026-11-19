@@ -21,7 +21,7 @@ def read_bucket_documents() -> list[CTIDocument]:
         for item in response.get("Contents", []):
             key = item.get("Key")
             if not isinstance(key, str):
-                raise ValueError("S3 object listing returned an invalid object key")
+                raise TypeError("S3 object listing returned an invalid object key")
             result = client.get_object(Bucket=CTI_BUCKET, Key=key)
             body = result["Body"]
             try:
@@ -29,10 +29,10 @@ def read_bucket_documents() -> list[CTIDocument]:
             finally:
                 body.close()
             if not isinstance(payload, dict):
-                raise ValueError(f"CTI object '{key}' must contain a JSON object")
+                raise TypeError(f"CTI object '{key}' must contain a JSON object")
             document_id = payload.get("id", key)
             if not isinstance(document_id, str) or not document_id:
-                raise ValueError(f"CTI object '{key}' has no usable document id")
+                raise TypeError(f"CTI object '{key}' has no usable document id")
             text = payload.get("text")
             if not isinstance(text, str):
                 text = json.dumps(payload, sort_keys=True, ensure_ascii=False)
@@ -52,7 +52,7 @@ def read_bucket_documents() -> list[CTIDocument]:
             break
         continuation_token = response.get("NextContinuationToken")
         if not isinstance(continuation_token, str) or not continuation_token:
-            raise ValueError("Truncated S3 listing did not provide a continuation token")
+            raise TypeError("Truncated S3 listing did not provide a continuation token")
     if not documents:
         raise ValueError("CTI corpus bucket is empty")
     return documents

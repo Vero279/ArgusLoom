@@ -17,7 +17,10 @@ def test_parse_kubernetes_directory_creates_expected_nodes() -> None:
 def test_kubernetes_parser_builds_selector_edges() -> None:
     _, edges = parse_kubernetes_directory("data/fixtures/k8s")
 
-    assert any(edge.source == "k8s_service.web-svc" and edge.target == "k8s_deployment.web" for edge in edges)
+    assert any(
+        edge.source == "k8s_service.web-svc" and edge.target == "k8s_deployment.web"
+        for edge in edges
+    )
 
 
 def test_kubernetes_parser_handles_empty_directory() -> None:

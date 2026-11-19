@@ -70,7 +70,9 @@ def test_compute_blast_radius_respects_max_depth() -> None:
 
 def test_compute_blast_radius_ignores_edges_to_missing_nodes() -> None:
     graph = _graph_linear()
-    graph.edges.append(GraphEdge(source="A", target="external.internet", relation="exposes"))
+    graph.edges.append(
+        GraphEdge(source="A", target="external.internet", relation="exposes")
+    )
 
     result = compute_blast_radius(graph, [], "A", max_depth=3)
 

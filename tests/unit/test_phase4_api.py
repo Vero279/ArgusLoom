@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from argusloom.api.app import app
 
-
 client = TestClient(app)
 
 
@@ -23,7 +22,9 @@ def test_graph_analysis_endpoint() -> None:
                 "source": "kubernetes",
                 "criticality": "high",
                 "exposure": 0.9,
-                "metadata": {"cti": [{"source": "MITRE ATT&CK", "title": "Ingress exposure"}]},
+                "metadata": {
+                    "cti": [{"source": "MITRE ATT&CK", "title": "Ingress exposure"}]
+                },
                 "stride": ["information_disclosure", "denial_of_service"],
             },
             {
@@ -37,7 +38,13 @@ def test_graph_analysis_endpoint() -> None:
                 "stride": ["tampering", "information_disclosure"],
             },
         ],
-        "edges": [{"source": "k8s_ingress.web", "target": "aws_db_instance.db", "relation": "depends_on"}],
+        "edges": [
+            {
+                "source": "k8s_ingress.web",
+                "target": "aws_db_instance.db",
+                "relation": "depends_on",
+            }
+        ],
     }
 
     response = client.post("/graph/analyze", json=payload)

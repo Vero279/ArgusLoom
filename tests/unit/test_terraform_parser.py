@@ -5,7 +5,7 @@ from argusloom.ingestion.terraform_parser import parse_terraform_directory
 
 
 def test_parse_terraform_directory_builds_common_aws_assets() -> None:
-    nodes, edges = parse_terraform_directory("data/fixtures/terraform")
+    nodes, _edges = parse_terraform_directory("data/fixtures/terraform")
 
     node_ids = {node.id for node in nodes}
     assert "aws_vpc.main" in node_ids

@@ -40,7 +40,10 @@ def collect_preflight_blockers(repository_root: str | Path) -> list[str]:
         if manifest.get("status") != "ready":
             blockers.append("CTI snapshot manifest is not marked ready")
         verify_snapshot_manifest(root, manifest_path)
-        if any(not entry.get("experiment_eligible", False) for entry in manifest["snapshots"]):
+        if any(
+            not entry.get("experiment_eligible", False)
+            for entry in manifest["snapshots"]
+        ):
             blockers.append("one or more CTI snapshots are not experiment-eligible")
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         blockers.append(f"CTI snapshot verification failed: {exc}")
@@ -77,14 +80,18 @@ def collect_preflight_blockers(repository_root: str | Path) -> list[str]:
             or not item.get("source_refs")
             for item in questions
         ):
-            blockers.append("every question needs source-derived expected facts and references")
+            blockers.append(
+                "every question needs source-derived expected facts and references"
+            )
 
     return blockers
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument(
+        "--root", type=Path, default=Path(__file__).resolve().parents[1]
+    )
     args = parser.parse_args()
     blockers = collect_preflight_blockers(args.root)
     if blockers:

@@ -38,7 +38,9 @@ def _infer_criticality(kind: str) -> Criticality:
     return Criticality.LOW
 
 
-def parse_kubernetes_directory(path: str | Path) -> tuple[list[GraphNode], list[GraphEdge]]:
+def parse_kubernetes_directory(
+    path: str | Path,
+) -> tuple[list[GraphNode], list[GraphEdge]]:
     """Parse a directory of Kubernetes manifests and return graph nodes and edges."""
 
     root = Path(path)
@@ -82,10 +84,20 @@ def parse_kubernetes_directory(path: str | Path) -> tuple[list[GraphNode], list[
                     for selector_key, selector_value in selector.items():
                         if selector_key == "app":
                             target_id = _resource_id("Deployment", selector_value)
-                            edges.append(GraphEdge(source=node_id, target=target_id, relation="selects"))
+                            edges.append(
+                                GraphEdge(
+                                    source=node_id, target=target_id, relation="selects"
+                                )
+                            )
             elif kind == "Ingress":
                 rules = doc.get("spec", {}).get("rules", [])
                 if rules:
-                    edges.append(GraphEdge(source=node_id, target="external.internet", relation="exposes"))
+                    edges.append(
+                        GraphEdge(
+                            source=node_id,
+                            target="external.internet",
+                            relation="exposes",
+                        )
+                    )
 
     return nodes, edges

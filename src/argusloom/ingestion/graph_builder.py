@@ -10,13 +10,19 @@ from argusloom.ingestion.k8s_parser import parse_kubernetes_directory
 from argusloom.ingestion.terraform_parser import parse_terraform_directory
 
 
-def build_graph(terraform_path: str | Path, k8s_path: str | Path, output_path: str | Path | None = None) -> Graph:
+def build_graph(
+    terraform_path: str | Path,
+    k8s_path: str | Path,
+    output_path: str | Path | None = None,
+) -> Graph:
     """Build a unified graph from Terraform and Kubernetes inputs."""
 
     terraform_nodes, terraform_edges = parse_terraform_directory(terraform_path)
     k8s_nodes, k8s_edges = parse_kubernetes_directory(k8s_path)
 
-    graph = Graph(nodes=[*terraform_nodes, *k8s_nodes], edges=[*terraform_edges, *k8s_edges])
+    graph = Graph(
+        nodes=[*terraform_nodes, *k8s_nodes], edges=[*terraform_edges, *k8s_edges]
+    )
 
     for edge in graph.edges:
         if edge.source == "external.internet":

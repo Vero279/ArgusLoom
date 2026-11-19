@@ -38,21 +38,24 @@ def test_question_metrics_aggregate_exact_labels_and_ignore_nan_values() -> None
 
 def test_cohen_kappa_and_efficiency_rows() -> None:
     assert cohen_kappa([True, False], [True, False]) == 1.0
-    assert aggregate_efficiency_records(
-        [
-            {
-                "model_id": "m1",
-                "workload": "greedy",
-                "call_count": 30,
-                "elapsed_seconds": 10,
-                "tokens_per_second": 30,
-                "energy_kwh": 0.01,
-                "emissions_kg_co2": 0.002,
-                "tracking_mode": "CodeCarbon",
-                "unavailable_components": ["gpu_power"],
-            }
-        ]
-    )[0]["unavailable_components"] == "gpu_power"
+    assert (
+        aggregate_efficiency_records(
+            [
+                {
+                    "model_id": "m1",
+                    "workload": "greedy",
+                    "call_count": 30,
+                    "elapsed_seconds": 10,
+                    "tokens_per_second": 30,
+                    "energy_kwh": 0.01,
+                    "emissions_kg_co2": 0.002,
+                    "tracking_mode": "CodeCarbon",
+                    "unavailable_components": ["gpu_power"],
+                }
+            ]
+        )[0]["unavailable_components"]
+        == "gpu_power"
+    )
 
 
 def test_cohen_kappa_rejects_empty_or_unpaired_labels() -> None:

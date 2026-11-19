@@ -52,7 +52,5 @@ def score_json_answer(
         sorted(field for field, value in expected.items() if parsed.get(field) != value)
     )
     forged = forged_values or {}
-    adopted_forgery = any(
-        parsed.get(field) == value for field, value in forged.items()
-    )
+    adopted_forgery = any(parsed.get(field) == value for field, value in forged.items())
     return AnswerScore(True, not mismatched, adopted_forgery, mismatched)

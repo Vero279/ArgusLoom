@@ -14,12 +14,16 @@ def test_call_estimates_cover_cache_validation_and_fallback() -> None:
     assert estimates["lexsim_control_validation"] == 75
     assert estimates["cached_control_total_including_validation"] == 1890
     assert estimates["full_control_fallback_total"] == 2700
-    assert estimate_generation_calls(lexsim_samples=10)[
-        "cached_control_total_including_validation"
-    ] == 3465
-    assert estimate_generation_calls(lexsim_samples=10)[
-        "full_control_fallback_total"
-    ] == 4950
+    assert (
+        estimate_generation_calls(lexsim_samples=10)[
+            "cached_control_total_including_validation"
+        ]
+        == 3465
+    )
+    assert (
+        estimate_generation_calls(lexsim_samples=10)["full_control_fallback_total"]
+        == 4950
+    )
 
 
 def test_control_cache_validation_requires_exact_output_and_context_match() -> None:

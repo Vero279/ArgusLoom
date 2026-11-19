@@ -8,7 +8,6 @@ from typing import Any
 from argusloom.domain.enums import Criticality, NodeKind
 from argusloom.domain.graph import Graph
 
-
 CRITICALITY_BONUS = {
     Criticality.LOW: 1.0,
     Criticality.MEDIUM: 2.5,
@@ -58,21 +57,35 @@ def _node_risk_score(node: Any, graph: Graph) -> float:
     criticality_weight = CRITICALITY_BONUS.get(node.criticality, 1.0)
     kind_weight = KIND_BONUS.get(node.kind, 1.0)
     direct_exposure = node.exposure * 3.0
-    inbound_links = sum(1 for edge in graph.edges if edge.target == node.id and edge.relation in {"exposes", "depends_on", "attached_to"})
+    inbound_links = sum(
+        1
+        for edge in graph.edges
+        if edge.target == node.id
+        and edge.relation in {"exposes", "depends_on", "attached_to"}
+    )
     outbound_links = sum(1 for edge in graph.edges if edge.source == node.id)
     data_bias = 2.5 if node.kind in {NodeKind.DATA, NodeKind.STORAGE} else 0.0
     network_bias = 1.5 if node.kind == NodeKind.NETWORK and node.exposure > 0.7 else 0.0
     inherited_exposure = 0.8 * inbound_links + 0.4 * outbound_links
 
-    return criticality_weight + kind_weight + direct_exposure + data_bias + network_bias + inherited_exposure
+    return (
+        criticality_weight
+        + kind_weight
+        + direct_exposure
+        + data_bias
+        + network_bias
+        + inherited_exposure
+    )
 
 
 def _infer_threats(node: Any) -> list[str]:
     if getattr(node, "stride", None):
-        normalized = _normalize_threats([
-            item.value if hasattr(item, "value") else str(item)
-            for item in node.stride
-        ])
+        normalized = _normalize_threats(
+            [
+                item.value if hasattr(item, "value") else str(item)
+                for item in node.stride
+            ]
+        )
         if normalized:
             return normalized
 

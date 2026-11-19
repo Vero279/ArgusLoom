@@ -1,6 +1,6 @@
+from argusloom.analysis.threat_model import analyze_graph
 from argusloom.domain.enums import Criticality, NodeKind
 from argusloom.domain.graph import Graph, GraphEdge, GraphNode
-from argusloom.analysis.threat_model import analyze_graph
 
 
 def test_analyze_graph_prioritizes_exposed_assets() -> None:
@@ -32,8 +32,16 @@ def test_analyze_graph_prioritizes_exposed_assets() -> None:
             ),
         ],
         edges=[
-            GraphEdge(source="aws_security_group.app", target="aws_instance.web", relation="exposes"),
-            GraphEdge(source="aws_instance.web", target="aws_db_instance.db", relation="depends_on"),
+            GraphEdge(
+                source="aws_security_group.app",
+                target="aws_instance.web",
+                relation="exposes",
+            ),
+            GraphEdge(
+                source="aws_instance.web",
+                target="aws_db_instance.db",
+                relation="depends_on",
+            ),
         ],
     )
 

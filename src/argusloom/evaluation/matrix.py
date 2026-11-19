@@ -14,7 +14,9 @@ def estimate_generation_calls(
     control_validation_questions_per_model: int = 3,
 ) -> dict[str, int]:
     if model_count < 1 or question_count < 1 or lexsim_samples < 1:
-        raise ValueError("model_count, question_count, and lexsim_samples must be positive")
+        raise ValueError(
+            "model_count, question_count, and lexsim_samples must be positive"
+        )
     if not 0 <= control_validation_questions_per_model <= question_count:
         raise ValueError("control validation count must be between zero and N")
 
@@ -23,7 +25,10 @@ def estimate_generation_calls(
     control_questions = model_count * question_count
     return {
         "greedy_without_control_reuse": model_count * question_count * 3,
-        "lexsim_without_control_reuse": model_count * question_count * 3 * lexsim_samples,
+        "lexsim_without_control_reuse": model_count
+        * question_count
+        * 3
+        * lexsim_samples,
         "greedy_baseline_and_attack": baseline_and_attack_questions,
         "lexsim_baseline_and_attack": baseline_and_attack_questions * lexsim_samples,
         "greedy_control_validation": validation_questions,
@@ -74,13 +79,13 @@ def select_shared_num_ctx(
         prompt_tokens = measurement.get("full_prompt_tokens")
         truncated = measurement.get("retrieved_context_truncated")
         if not isinstance(model_id, str) or not isinstance(num_ctx, int):
-            raise ValueError("pilot measurements need model_id and integer num_ctx")
+            raise TypeError("pilot measurements need model_id and integer num_ctx")
         if num_ctx not in candidate_set:
             raise ValueError(f"Unexpected num_ctx candidate: {num_ctx}")
         if not isinstance(prompt_tokens, int) or prompt_tokens < 0:
-            raise ValueError("pilot measurements need full_prompt_tokens")
+            raise TypeError("pilot measurements need full_prompt_tokens")
         if not isinstance(truncated, bool):
-            raise ValueError("pilot measurements need a truncation result")
+            raise TypeError("pilot measurements need a truncation result")
         if prompt_tokens <= num_ctx and not truncated:
             valid.add(num_ctx)
 
@@ -98,11 +103,11 @@ def select_shared_num_ctx(
             len(rows) == model_count
             and row_model_ids == model_ids
             and candidate in valid
-        ):
-            if all(
+            and all(
                 item["full_prompt_tokens"] <= candidate
                 and item["retrieved_context_truncated"] is False
                 for item in rows
-            ):
-                return candidate
+            )
+        ):
+            return candidate
     raise ValueError("No candidate num_ctx fits all models without truncation")

@@ -3,4 +3,11 @@
 from argusloom.domain.enums import Criticality, NodeKind, StrideCategory
 from argusloom.domain.graph import Graph, GraphEdge, GraphNode
 
-__all__ = ["Criticality", "NodeKind", "StrideCategory", "Graph", "GraphEdge", "GraphNode"]
+__all__ = [
+    "Criticality",
+    "Graph",
+    "GraphEdge",
+    "GraphNode",
+    "NodeKind",
+    "StrideCategory",
+]

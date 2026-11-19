@@ -32,7 +32,13 @@ def test_enrich_graph_with_cti_attaches_references() -> None:
                 exposure=0.5,
             ),
         ],
-        edges=[GraphEdge(source="k8s_ingress.web", target="aws_db_instance.db", relation="depends_on")],
+        edges=[
+            GraphEdge(
+                source="k8s_ingress.web",
+                target="aws_db_instance.db",
+                relation="depends_on",
+            )
+        ],
     )
 
     enriched = enrich_graph_with_cti(graph)

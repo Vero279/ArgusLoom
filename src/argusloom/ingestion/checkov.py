@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
-from typing import Any
 import json
 import subprocess
+from copy import deepcopy
+from typing import Any
 
 from argusloom.domain.graph import Graph
 
@@ -15,22 +15,22 @@ def parse_checkov_findings(report: dict[str, Any]) -> list[dict[str, Any]]:
 
     results = report.get("results", {})
     if not isinstance(results, dict):
-        raise ValueError("Checkov report results must be an object")
+        raise TypeError("Checkov report results must be an object")
 
     checks = results.get("failed_checks", [])
     if not isinstance(checks, list):
-        raise ValueError("Checkov failed_checks must be a list")
+        raise TypeError("Checkov failed_checks must be a list")
 
     findings: list[dict[str, Any]] = []
     for check in checks:
         if not isinstance(check, dict):
-            raise ValueError("Checkov finding must be an object")
+            raise TypeError("Checkov finding must be an object")
         resource_id = check.get("resource")
         check_id = check.get("check_id")
         if not isinstance(resource_id, str) or not resource_id:
-            raise ValueError("Checkov finding resource must be a non-empty string")
+            raise TypeError("Checkov finding resource must be a non-empty string")
         if not isinstance(check_id, str) or not check_id:
-            raise ValueError("Checkov finding check_id must be a non-empty string")
+            raise TypeError("Checkov finding check_id must be a non-empty string")
         findings.append(
             {
                 "source": "checkov",
@@ -62,7 +62,7 @@ def annotate_graph_with_checkov(
         metadata = dict(node.metadata)
         existing = metadata.get("checkov_findings", [])
         if not isinstance(existing, list):
-            raise ValueError(
+            raise TypeError(
                 f"Node '{resource_id}' metadata checkov_findings must be a list"
             )
         metadata["checkov_findings"] = [*existing, dict(finding)]
@@ -73,9 +73,7 @@ def annotate_graph_with_checkov(
             edge_metadata = dict(edge.metadata)
             edge_findings = edge_metadata.get("checkov_findings", [])
             if not isinstance(edge_findings, list):
-                raise ValueError(
-                    "Edge metadata checkov_findings must be a list"
-                )
+                raise TypeError("Edge metadata checkov_findings must be a list")
             edge_metadata["checkov_findings"] = [*edge_findings, dict(finding)]
             edge.metadata = edge_metadata
     return annotated
@@ -109,5 +107,5 @@ def run_checkov(terraform_directory: str) -> tuple[int, list[dict[str, Any]]]:
     except json.JSONDecodeError as exc:
         raise ValueError("Checkov did not return valid JSON output") from exc
     if not isinstance(report, dict):
-        raise ValueError("Checkov JSON output must be an object")
+        raise TypeError("Checkov JSON output must be an object")
     return completed.returncode, parse_checkov_findings(report)

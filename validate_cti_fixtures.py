@@ -3,11 +3,13 @@ Audit script: validate CTI fixtures against official sources.
 Run once before thesis. NOT part of the test suite.
 Outputs a report you can paste into the thesis.
 """
+
 import json
 import time
-import urllib.request
 import urllib.error
+import urllib.request
 from pathlib import Path
+
 
 # ---------- NVD ----------
 def validate_cves(fixtures_path: Path) -> list[dict]:
@@ -19,20 +21,24 @@ def validate_cves(fixtures_path: Path) -> list[dict]:
         status = "UNKNOWN"
         detail = ""
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "ArgusLoom-audit/1.0"})
+            req = urllib.request.Request(
+                url, headers={"User-Agent": "ArgusLoom-audit/1.0"}
+            )
             with urllib.request.urlopen(req, timeout=30) as r:
                 data = json.loads(r.read())
             total = data.get("totalResults", 0)
             if total == 1:
                 status = "VALID"
-                official = data["vulnerabilities"][0]["cve"]["descriptions"][0]["value"][:120]
+                official = data["vulnerabilities"][0]["cve"]["descriptions"][0][
+                    "value"
+                ][:120]
                 detail = f"official: {official}"
             else:
                 status = "NOT FOUND"
                 detail = f"totalResults={total}"
         except urllib.error.HTTPError as e:
             status = f"HTTP {e.code}"
-        except Exception as e:
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
             status = "ERROR"
             detail = str(e)[:100]
         results.append({"id": cve_id, "status": status, "detail": detail})
@@ -40,6 +46,7 @@ def validate_cves(fixtures_path: Path) -> list[dict]:
         # NVD rate limit: 5 req/30s without key -> sleep 6s
         time.sleep(6.5)
     return results
+
 
 # ---------- ATT&CK ----------
 def validate_attack(fixtures_path: Path) -> list[dict]:
@@ -66,6 +73,7 @@ def validate_attack(fixtures_path: Path) -> list[dict]:
         print(f"  {tid:12s} {status}")
     return results
 
+
 # ---------- ATLAS ----------
 def validate_atlas(fixtures_path: Path) -> list[dict]:
     """Fetch official ATLAS YAML and extract AML.T#### IDs."""
@@ -76,12 +84,13 @@ def validate_atlas(fixtures_path: Path) -> list[dict]:
     try:
         with urllib.request.urlopen(req, timeout=120) as r:
             yaml_text = r.read().decode("utf-8", errors="replace")
-    except Exception as e:
+    except (urllib.error.URLError, TimeoutError) as e:
         print(f"  ATLAS fetch failed: {e}")
         return [{"id": "ALL", "status": f"FETCH FAILED: {e}"}]
 
     # crude extraction of AML.T#### IDs from YAML (no yaml dep needed)
     import re
+
     official_ids = set(re.findall(r"AML\.T\d{4}(?:\.\d{3})?", yaml_text))
 
     techniques = json.loads(fixtures_path.read_text(encoding="utf-8"))
@@ -92,6 +101,7 @@ def validate_atlas(fixtures_path: Path) -> list[dict]:
         results.append({"id": tid, "status": status})
         print(f"  {tid:14s} {status}")
     return results
+
 
 # ---------- MAIN ----------
 def main():
@@ -105,12 +115,12 @@ def main():
     cve_valid = sum(1 for r in cve_results if r["status"] == "VALID")
     cve_invalid = [r for r in cve_results if r["status"] != "VALID"]
 
-    print(f"\n[2/3] ATT&CK techniques (official STIX bundle)")
+    print("\n[2/3] ATT&CK techniques (official STIX bundle)")
     attack_results = validate_attack(root / "data/mitre/attack.json")
     attack_valid = sum(1 for r in attack_results if r["status"] == "VALID")
     attack_invalid = [r for r in attack_results if r["status"] != "VALID"]
 
-    print(f"\n[3/3] ATLAS techniques (official YAML)")
+    print("\n[3/3] ATLAS techniques (official YAML)")
     atlas_results = validate_atlas(root / "data/mitre/atlas.json")
     atlas_valid = sum(1 for r in atlas_results if r["status"] == "VALID")
     atlas_invalid = [r for r in atlas_results if r["status"] != "VALID"]
@@ -131,12 +141,21 @@ def main():
     # write report
     report = {
         "cves": {"total": len(cve_results), "valid": cve_valid, "invalid": cve_invalid},
-        "attack": {"total": len(attack_results), "valid": attack_valid, "invalid": attack_invalid},
-        "atlas": {"total": len(atlas_results), "valid": atlas_valid, "invalid": atlas_invalid},
+        "attack": {
+            "total": len(attack_results),
+            "valid": attack_valid,
+            "invalid": attack_invalid,
+        },
+        "atlas": {
+            "total": len(atlas_results),
+            "valid": atlas_valid,
+            "invalid": atlas_invalid,
+        },
     }
     out = root / "cti_validation_report.json"
     out.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nReport written to {out}")
+
 
 if __name__ == "__main__":
     main()

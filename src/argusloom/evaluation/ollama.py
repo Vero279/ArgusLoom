@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
-from typing import Any
 
 
 @dataclass(frozen=True, slots=True)
@@ -79,12 +79,12 @@ class OllamaClient:
         except URLError as exc:
             raise RuntimeError(f"Unable to reach local Ollama: {exc.reason}") from exc
         if not isinstance(body, dict) or not isinstance(body.get("response"), str):
-            raise ValueError("Ollama response is missing its generated text")
+            raise TypeError("Ollama response is missing its generated text")
 
         def nonnegative_integer(field: str) -> int:
             value: Any = body.get(field, 0)
             if not isinstance(value, int) or value < 0:
-                raise ValueError(f"Ollama response field {field} must be non-negative")
+                raise TypeError(f"Ollama response field {field} must be non-negative")
             return value
 
         return Generation(
@@ -104,9 +104,9 @@ def format_retrieved_context(hits: list[dict[str, Any]]) -> str:
         text = hit.get("text")
         metadata = hit.get("metadata") or {}
         if not isinstance(document_id, str) or not isinstance(text, str):
-            raise ValueError("each retrieval hit needs string id and text fields")
+            raise TypeError("each retrieval hit needs string id and text fields")
         if not isinstance(metadata, dict):
-            raise ValueError("retrieval hit metadata must be an object")
+            raise TypeError("retrieval hit metadata must be an object")
         source = str(metadata.get("source", "unknown"))
         snapshot = str(metadata.get("snapshot_hash", "unknown"))
         blocks.append(

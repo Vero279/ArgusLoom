@@ -298,10 +298,16 @@ def test_hybrid_primary_path_follows_explicit_waypoints() -> None:
 def test_waypoint_path_does_not_reverse_dependency_edges() -> None:
     graph = Graph(
         nodes=[
-            GraphNode(id="consumer", kind=NodeKind.COMPUTE, name="consumer", source="fixture"),
-            GraphNode(id="dependency", kind=NodeKind.DATA, name="dependency", source="fixture"),
+            GraphNode(
+                id="consumer", kind=NodeKind.COMPUTE, name="consumer", source="fixture"
+            ),
+            GraphNode(
+                id="dependency", kind=NodeKind.DATA, name="dependency", source="fixture"
+            ),
         ],
-        edges=[GraphEdge(source="consumer", target="dependency", relation="depends_on")],
+        edges=[
+            GraphEdge(source="consumer", target="dependency", relation="depends_on")
+        ],
     )
 
     with pytest.raises(ValueError, match="No directed edge"):

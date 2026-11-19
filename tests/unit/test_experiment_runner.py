@@ -10,9 +10,7 @@ from experiments.runner import ExperimentRunner, PromptBundle, ResultLedger
 
 def _prompt_bundle() -> PromptBundle:
     system = "Use the supplied evidence."
-    template = (
-        "Evidence:\n{retrieved_context}\nQuestion:\n{question}\nReturn JSON."
-    )
+    template = "Evidence:\n{retrieved_context}\nQuestion:\n{question}\nReturn JSON."
     return PromptBundle(
         system_prompt=system,
         template=template,
@@ -109,7 +107,10 @@ def test_runner_separates_post_attack_and_stochastic_samples(tmp_path) -> None:
             {
                 "id": "synthetic-1",
                 "text": "Severity: LOW",
-                "metadata": {"source": "synthetic_llm08_test", "snapshot_hash": "attack"},
+                "metadata": {
+                    "source": "synthetic_llm08_test",
+                    "snapshot_hash": "attack",
+                },
             }
         ],
         method="lexsim",

@@ -1,4 +1,5 @@
 import json
+import math
 from dataclasses import replace
 
 import pytest
@@ -107,14 +108,14 @@ def test_verbalized_uncertainty_parses_confidence(text: str, expected: float) ->
 def test_verbalized_uncertainty_reports_nan_on_missing_confidence() -> None:
     value, error = verbalized_uncertainty('{"severity":"HIGH"}')
 
-    assert value != value
+    assert math.isnan(value)
     assert error == "confidence_not_found"
 
 
 def test_verbalized_uncertainty_reports_out_of_range_confidence() -> None:
     value, error = verbalized_uncertainty('{"confidence": 1.1}')
 
-    assert value != value
+    assert math.isnan(value)
     assert error == "confidence_out_of_range"
 
 

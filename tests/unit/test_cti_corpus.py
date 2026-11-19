@@ -9,7 +9,9 @@ from argusloom.domain.errors import NodeNotFound
 from argusloom.domain.graph import Graph, GraphNode
 
 
-def test_snapshot_corpus_requires_exact_count_and_preserves_provenance(tmp_path) -> None:
+def test_snapshot_corpus_requires_exact_count_and_preserves_provenance(
+    tmp_path,
+) -> None:
     snapshot = tmp_path / "cves.json"
     snapshot.write_text(
         json.dumps(
@@ -19,7 +21,9 @@ def test_snapshot_corpus_requires_exact_count_and_preserves_provenance(tmp_path)
                         "cve": {
                             "id": "CVE-2025-1234",
                             "published": "2025-01-01",
-                            "descriptions": [{"lang": "en", "value": "A test description."}],
+                            "descriptions": [
+                                {"lang": "en", "value": "A test description."}
+                            ],
                             "metrics": {
                                 "cvssMetricV31": [
                                     {

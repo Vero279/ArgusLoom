@@ -192,9 +192,7 @@ def create_app() -> FastAPI:
                     detail="waypoints must start with source_id and end with target_id",
                 )
             try:
-                paths = [
-                    find_attack_path_through_waypoints(graph, payload.waypoints)
-                ]
+                paths = [find_attack_path_through_waypoints(graph, payload.waypoints)]
             except ValueError as exc:
                 raise HTTPException(status_code=422, detail=str(exc)) from exc
         else:

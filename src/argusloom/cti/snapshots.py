@@ -19,16 +19,16 @@ def verify_snapshot_manifest(
     manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
     snapshots = manifest.get("snapshots")
     if not isinstance(snapshots, list):
-        raise ValueError("CTI snapshot manifest must contain a snapshots list")
+        raise TypeError("CTI snapshot manifest must contain a snapshots list")
 
     verified: list[dict[str, Any]] = []
     for snapshot in snapshots:
         if not isinstance(snapshot, dict):
-            raise ValueError("CTI snapshot entries must be objects")
+            raise TypeError("CTI snapshot entries must be objects")
         relative_path = snapshot.get("path")
         expected_hash = snapshot.get("sha256")
         if not isinstance(relative_path, str) or not isinstance(expected_hash, str):
-            raise ValueError("Each CTI snapshot needs path and sha256 strings")
+            raise TypeError("Each CTI snapshot needs path and sha256 strings")
         file_path = (root / relative_path).resolve()
         try:
             file_path.relative_to(root)
@@ -52,7 +52,7 @@ def require_experiment_ready_manifest(manifest_path: str | Path) -> dict[str, An
         )
     snapshots = manifest.get("snapshots")
     if not isinstance(snapshots, list) or not snapshots:
-        raise ValueError("experiment-ready manifest must include snapshots")
+        raise TypeError("experiment-ready manifest must include snapshots")
     if any(not item.get("experiment_eligible", False) for item in snapshots):
         raise ValueError("all snapshots must be marked experiment_eligible")
     return manifest

@@ -94,7 +94,9 @@ class ResultLedger:
                     record = json.loads(line)
                     key = self._key(record)
                     if key in self._records:
-                        raise ValueError(f"Duplicate result record on line {line_number}")
+                        raise ValueError(
+                            f"Duplicate result record on line {line_number}"
+                        )
                     self._records[key] = record
 
     @staticmethod
@@ -192,7 +194,9 @@ class ExperimentRunner:
                 "hits": hits,
             }
         )
-        actual_seed = self.seed + sample_index if run_type == "stochastic" else self.seed
+        actual_seed = (
+            self.seed + sample_index if run_type == "stochastic" else self.seed
+        )
         decoding = {
             "temperature": temperature,
             "seed": actual_seed,

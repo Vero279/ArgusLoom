@@ -5,9 +5,10 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 
 def _canonical_json(value: Any) -> str:
@@ -53,9 +54,11 @@ class ResultCache:
                     key = record.get("cache_key")
                     identity = record.get("identity")
                     if not isinstance(key, str) or not isinstance(identity, dict):
-                        raise ValueError(f"Invalid cache record on line {line_number}")
+                        raise TypeError(f"Invalid cache record on line {line_number}")
                     if key != self._identity_key(identity):
-                        raise ValueError(f"Cache identity hash mismatch on line {line_number}")
+                        raise ValueError(
+                            f"Cache identity hash mismatch on line {line_number}"
+                        )
                     self._records[key] = record
 
     @staticmethod

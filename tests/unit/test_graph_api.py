@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from argusloom.api.app import create_app
 
-
 client = TestClient(create_app())
 
 
@@ -13,7 +12,9 @@ def test_graph_endpoint_returns_fixture_nodes_and_edges() -> None:
     payload = response.json()
     assert payload["nodes"]
     assert payload["edges"]
-    assert {"id", "kind", "criticality", "exposure", "cvss_max"} <= payload["nodes"][0].keys()
+    assert {"id", "kind", "criticality", "exposure", "cvss_max"} <= payload["nodes"][
+        0
+    ].keys()
 
 
 def test_graph_endpoint_allows_vite_development_origin() -> None:

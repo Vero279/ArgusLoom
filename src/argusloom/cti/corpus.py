@@ -29,13 +29,13 @@ _EXCLUDED_PROMPT_INJECTION_IDS = {
 def _nvd_records(payload: dict[str, Any]) -> list[dict[str, Any]]:
     vulnerabilities = payload.get("vulnerabilities")
     if not isinstance(vulnerabilities, list):
-        raise ValueError("NVD snapshot must contain a vulnerabilities list")
+        raise TypeError("NVD snapshot must contain a vulnerabilities list")
 
     records: list[dict[str, Any]] = []
     for item in vulnerabilities:
         cve = item.get("cve") if isinstance(item, dict) else None
         if not isinstance(cve, dict) or not isinstance(cve.get("id"), str):
-            raise ValueError("NVD vulnerability must contain a CVE id")
+            raise TypeError("NVD vulnerability must contain a CVE id")
         description = next(
             (
                 entry.get("value", "")
@@ -47,7 +47,12 @@ def _nvd_records(payload: dict[str, Any]) -> list[dict[str, Any]]:
         metrics = cve.get("metrics", {})
         cvss = 0.0
         severity = "UNKNOWN"
-        for metric_name in ("cvssMetricV40", "cvssMetricV31", "cvssMetricV30", "cvssMetricV2"):
+        for metric_name in (
+            "cvssMetricV40",
+            "cvssMetricV31",
+            "cvssMetricV30",
+            "cvssMetricV2",
+        ):
             metric_entries = metrics.get(metric_name, [])
             if metric_entries:
                 cvss_data = metric_entries[0].get("cvssData", {})
@@ -79,7 +84,7 @@ def _mitre_records(payload: Any) -> list[dict[str, Any]]:
     else:
         objects = None
     if not isinstance(objects, list):
-        raise ValueError("MITRE snapshot must contain a records list")
+        raise TypeError("MITRE snapshot must contain a records list")
 
     records: list[dict[str, Any]] = []
     for item in objects:
@@ -123,7 +128,7 @@ def load_snapshot_corpus(
     manifest_file = Path(manifest_path)
     if not manifest_file.is_absolute():
         manifest_file = root / manifest_file
-    manifest = require_experiment_ready_manifest(manifest_file)
+    require_experiment_ready_manifest(manifest_file)
     verified = verify_snapshot_manifest(root, manifest_file)
     documents: list[CTIDocument] = []
     seen_ids: set[str] = set()
@@ -151,7 +156,14 @@ def load_snapshot_corpus(
             seen_ids.add(document_id)
             text = " | ".join(
                 str(record.get(field, ""))
-                for field in ("id", "name", "description", "severity", "cvss_score", "tactic")
+                for field in (
+                    "id",
+                    "name",
+                    "description",
+                    "severity",
+                    "cvss_score",
+                    "tactic",
+                )
                 if record.get(field) not in (None, "")
             )
             documents.append(
@@ -161,9 +173,12 @@ def load_snapshot_corpus(
                     metadata={
                         "source": snapshot["source"],
                         "snapshot_hash": snapshot["sha256"],
-                        "record_type": "nvd" if "vulnerabilities" in (
-                            payload if isinstance(payload, dict) else {}
-                        ) else "mitre",
+                        "record_type": (
+                            "nvd"
+                            if "vulnerabilities"
+                            in (payload if isinstance(payload, dict) else {})
+                            else "mitre"
+                        ),
                         "severity": str(record.get("severity", "UNKNOWN")),
                         "cvss_score": float(record.get("cvss_score", 0.0)),
                     },
@@ -177,7 +192,11 @@ def load_snapshot_corpus(
     corpus_hash = hashlib.sha256(
         json.dumps(
             [
-                {"id": document.id, "text": document.text, "metadata": document.metadata}
+                {
+                    "id": document.id,
+                    "text": document.text,
+                    "metadata": document.metadata,
+                }
                 for document in sorted(documents, key=lambda value: value.id)
             ],
             sort_keys=True,

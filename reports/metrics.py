@@ -7,15 +7,18 @@ import csv
 import json
 import math
 from collections import defaultdict
+from collections.abc import Iterable
 from pathlib import Path
 from statistics import mean
-from typing import Any, Iterable
+from typing import Any
 
 
 def cohen_kappa(labels_a: list[bool], labels_b: list[bool]) -> float:
     if len(labels_a) != len(labels_b) or not labels_a:
         raise ValueError("Cohen's kappa requires equally sized, non-empty labels")
-    observed = sum(first == second for first, second in zip(labels_a, labels_b)) / len(labels_a)
+    observed = sum(first == second for first, second in zip(labels_a, labels_b)) / len(
+        labels_a
+    )
     a_true = sum(labels_a) / len(labels_a)
     b_true = sum(labels_b) / len(labels_b)
     expected = a_true * b_true + (1 - a_true) * (1 - b_true)
@@ -118,14 +121,16 @@ def _read_jsonl(path: Path) -> list[dict[str, Any]]:
                 continue
             value = json.loads(line)
             if not isinstance(value, dict):
-                raise ValueError(f"Result line {line_number} must be a JSON object")
+                raise TypeError(f"Result line {line_number} must be a JSON object")
             records.append(value)
     return records
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input", type=Path, required=True, help="Question-level JSONL results")
+    parser.add_argument(
+        "--input", type=Path, required=True, help="Question-level JSONL results"
+    )
     parser.add_argument("--output", type=Path, required=True, help="Aggregate CSV path")
     args = parser.parse_args()
     write_csv(args.output, aggregate_question_records(_read_jsonl(args.input)))

@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import csv
 import re
-from statistics import median
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from statistics import median
+from typing import Any
 
 
 def measure_model_workload(
@@ -111,7 +112,9 @@ def measure_model_workload(
         "component_measurements": component_measurements,
         "unavailable_components": unavailable_components,
         "emissions_kg_co2": float(emissions_kg),
-        "tracking_mode": latest_row.get("tracking_mode", "CodeCarbon (mode unreported)"),
+        "tracking_mode": latest_row.get(
+            "tracking_mode", "CodeCarbon (mode unreported)"
+        ),
         "energy_unavailable_reason": unavailable_reason,
         "indexing_or_attack_included": False,
     }

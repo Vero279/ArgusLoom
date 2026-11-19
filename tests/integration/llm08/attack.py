@@ -81,9 +81,13 @@ def _local_s3_client() -> Any:
     if parsed.scheme != "http" or parsed.hostname not in {"127.0.0.1", "localhost"}:
         raise ValueError("LLM08 injection is restricted to localhost LocalStack")
     if parsed.port != 4566 or parsed.path not in {"", "/"}:
-        raise ValueError("LLM08 injection requires the LocalStack S3 endpoint on port 4566")
+        raise ValueError(
+            "LLM08 injection requires the LocalStack S3 endpoint on port 4566"
+        )
     if endpoint.rstrip("/") != LOCALSTACK_ENDPOINT:
-        raise ValueError("LLM08 injection requires the configured fixed LocalStack endpoint")
+        raise ValueError(
+            "LLM08 injection requires the configured fixed LocalStack endpoint"
+        )
 
     import boto3
 
