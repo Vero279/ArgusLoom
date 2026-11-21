@@ -236,6 +236,23 @@
       "total_results": 47,
       "results_per_page": 47,
       "experiment_eligible": false
+    },
+    {
+      "path": "data/nvd/snapshots/v3/cve/cve_ids-3db1efccae05-page-0000.json",
+      "source": "https://services.nvd.nist.gov/rest/json/cves/2.0?cveIds=CVE-2025-23419%2CCVE-2024-10979%2CCVE-2026-14664%2CCVE-2026-14679%2CCVE-2026-6479%2CCVE-2026-6478%2CCVE-2023-44487%2CCVE-2026-6471%2CCVE-2026-14672%2CCVE-2024-4317",
+      "format": "raw-nvd-api-2.0",
+      "sha256": "DBF5BCB918E726F84EC82BB361F86388C43F3C4E043B85A79B20AEE8742C03F2",
+      "collection_type": "nvd-cve-api",
+      "query_mode": "cve_ids",
+      "query": {
+        "cveIds": "CVE-2025-23419,CVE-2024-10979,CVE-2026-14664,CVE-2026-14679,CVE-2026-6479,CVE-2026-6478,CVE-2023-44487,CVE-2026-6471,CVE-2026-14672,CVE-2024-4317"
+      },
+      "query_key": "3db1efccae0564e583d7d17b7730dab83848d8b548400b67a0afc7a3d8dd9806",
+      "manifest_version": 3,
+      "page_start_index": 0,
+      "total_results": 10,
+      "results_per_page": 10,
+      "experiment_eligible": false
     }
   ]
 }

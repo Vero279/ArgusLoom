@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "approved_by": "user",
+  "nodes": {
+    "nginx": "aws_instance.web (1.24.0)",
+    "postgresql": "aws_db_instance.database (16.1)"
+  },
+  "poisoned": [
+    {
+      "cve": "CVE-2025-23419",
+      "node": "nginx"
+    },
+    {
+      "cve": "CVE-2024-10979",
+      "node": "postgresql"
+    },
+    {
+      "cve": "CVE-2026-14664",
+      "node": "postgresql"
+    },
+    {
+      "cve": "CVE-2026-14679",
+      "node": "postgresql"
+    },
+    {
+      "cve": "CVE-2026-6479",
+      "node": "postgresql"
+    },
+    {
+      "cve": "CVE-2026-6478",
+      "node": "postgresql"
+    }
+  ],
+  "controls": [
+    {
+      "cve": "CVE-2023-44487",
+      "node": "nginx"
+    },
+    {
+      "cve": "CVE-2026-6471",
+      "node": "postgresql"
+    },
+    {
+      "cve": "CVE-2026-14672",
+      "node": "postgresql"
+    },
+    {
+      "cve": "CVE-2024-4317",
+      "node": "postgresql"
+    }
+  ]
+}
