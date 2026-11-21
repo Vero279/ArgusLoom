@@ -15,13 +15,21 @@ def _mapping(
     product: str,
     *,
     verified: bool = True,
+    required_version_components: int | None = None,
 ) -> CPEProductMapping:
+    if required_version_components is None:
+        required_version_components = {
+            "postgresql": 2,
+            "nginx": 3,
+            "python": 3,
+        }.get(software, 0)
     return CPEProductMapping(
         software_key=software,
         part=part,
         vendor=vendor,
         product=product,
         verified=verified,
+        required_version_components=required_version_components,
     )
 
 
@@ -186,4 +194,138 @@ def test_unverified_mapping_and_unsupported_version_syntax_never_match() -> None
             version_end_including="1.30.0-beta",
         )
         is None
+    )
+
+
+def test_empty_declared_version_never_matches() -> None:
+    cve = {
+        "configurations": [
+            {
+                "nodes": [
+                    {
+                        "cpeMatch": [
+                            {
+                                "vulnerable": True,
+                                "criteria": "cpe:2.3:a:python:python:*:*:*:*:*:*:*:*",
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+    assert not match_cve_to_inventory(
+        cve,
+        [SoftwareIdentity("python", "")],
+        [_mapping("python", "a", "python", "python")],
+    )
+
+
+def test_partial_declared_versions_never_match_patch_level_ranges() -> None:
+    cve = {
+        "configurations": [
+            {
+                "nodes": [
+                    {
+                        "cpeMatch": [
+                            {
+                                "vulnerable": True,
+                                "criteria": "cpe:2.3:a:python:python:*:*:*:*:*:*:*:*",
+                                "versionEndIncluding": "3.11.5",
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+    mapping = [_mapping("python", "a", "python", "python")]
+
+    assert not match_cve_to_inventory(
+        cve,
+        [SoftwareIdentity("python", "3.11")],
+        mapping,
+    )
+    assert not match_cve_to_inventory(
+        cve,
+        [SoftwareIdentity("python", "python3.11")],
+        mapping,
+    )
+
+
+def test_unknown_product_never_matches() -> None:
+    cve = {
+        "configurations": [
+            {
+                "nodes": [
+                    {
+                        "cpeMatch": [
+                            {
+                                "vulnerable": True,
+                                "criteria": "cpe:2.3:a:python:unknown:*:*:*:*:*:*:*:*",
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+    assert not match_cve_to_inventory(
+        cve,
+        [SoftwareIdentity("python", "3.11.5")],
+        [_mapping("python", "a", "python", "python")],
+    )
+
+
+def test_complete_declared_version_matches_patch_level_range() -> None:
+    cve = {
+        "configurations": [
+            {
+                "nodes": [
+                    {
+                        "cpeMatch": [
+                            {
+                                "vulnerable": True,
+                                "criteria": "cpe:2.3:a:python:python:*:*:*:*:*:*:*:*",
+                                "versionEndIncluding": "3.11.5",
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+    assert match_cve_to_inventory(
+        cve,
+        [SoftwareIdentity("python", "3.11.5")],
+        [_mapping("python", "a", "python", "python")],
+    )
+
+
+def test_complete_declared_version_outside_patch_level_range_never_matches() -> None:
+    cve = {
+        "configurations": [
+            {
+                "nodes": [
+                    {
+                        "cpeMatch": [
+                            {
+                                "vulnerable": True,
+                                "criteria": "cpe:2.3:a:python:python:*:*:*:*:*:*:*:*",
+                                "versionEndIncluding": "3.11.5",
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+    assert not match_cve_to_inventory(
+        cve,
+        [SoftwareIdentity("python", "3.12.0")],
+        [_mapping("python", "a", "python", "python")],
     )
