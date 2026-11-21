@@ -23,6 +23,10 @@ resource "aws_instance" "web" {
   vpc_security_group_ids = [aws_security_group.public.id]
   iam_instance_profile   = aws_iam_instance_profile.web.name
   user_data              = "#!/bin/sh\naws lambda invoke --function-name ${aws_lambda_function.handler.arn} /tmp/result\naws s3 cp /tmp/result s3://${aws_s3_bucket.artifacts.bucket}/result"
+  tags = {
+    ArgusLoomSoftware        = "nginx"
+    ArgusLoomSoftwareVersion = "1.24.0"
+  }
 }
 
 resource "aws_instance" "worker" {
@@ -80,6 +84,7 @@ resource "aws_db_instance" "database" {
   engine                 = "postgres"
   instance_class         = "db.t3.micro"
   vpc_security_group_ids = [aws_security_group.internal.id]
+  engine_version         = "16.1"
 }
 
 resource "aws_lambda_function" "handler" {
