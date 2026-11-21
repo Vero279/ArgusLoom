@@ -1,5 +1,10 @@
 {
   "schema_version": 1,
   "status": "pending_user_verification",
+  "required_version_components": {
+    "postgresql": 2,
+    "nginx": 3,
+    "python": 3
+  },
   "entries": []
 }

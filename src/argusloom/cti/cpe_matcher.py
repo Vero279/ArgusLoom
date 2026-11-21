@@ -33,6 +33,7 @@ class CPEProductMapping:
     vendor: str
     product: str
     verified: bool = False
+    required_version_components: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -125,7 +126,8 @@ def cpe_version_matches(
 ) -> bool | None:
     """Return None when a version expression cannot be resolved safely."""
 
-    if _numeric_version(installed_version) is None:
+    installed_parts = _numeric_version(installed_version)
+    if installed_parts is None:
         return None
     if criteria_version == "-":
         return False
@@ -145,6 +147,9 @@ def cpe_version_matches(
     for bound, side, inclusive in bounds:
         if bound is None:
             continue
+        bound_parts = _numeric_version(bound)
+        if bound_parts is None or len(installed_parts) < len(bound_parts):
+            return None
         comparison = _compare_versions(installed_version, bound)
         if comparison is None:
             return None
@@ -277,6 +282,9 @@ def _mapping_for_identity(
         for mapping in mappings
         if mapping.software_key.casefold() == identity.software_key.casefold()
     ]
+    installed_parts = _numeric_version(identity.version)
+    if installed_parts is None:
+        return []
     return [
         (
             CPEName(
@@ -301,6 +309,7 @@ def _mapping_for_identity(
             mapping.verified,
         )
         for mapping in matching
+        if len(installed_parts) >= mapping.required_version_components
     ]
 
 
@@ -441,6 +450,9 @@ class SnapshotCPEMatcher:
             mapping_file = root / mapping_file
         mapping_payload = json.loads(mapping_file.read_text(encoding="utf-8"))
         raw_mappings = mapping_payload.get("entries", [])
+        required_components = mapping_payload.get("required_version_components", {})
+        if not isinstance(required_components, dict):
+            required_components = {}
         mappings: list[CPEProductMapping] = []
         if isinstance(raw_mappings, list):
             for item in raw_mappings:
@@ -477,6 +489,9 @@ class SnapshotCPEMatcher:
                     vendor,
                     product,
                 ):
+                    required_count = required_components.get(software_key)
+                    if not isinstance(required_count, int) or isinstance(required_count, bool):
+                        required_count = 0
                     mappings.append(
                         CPEProductMapping(
                             software_key=software_key,
@@ -484,6 +499,7 @@ class SnapshotCPEMatcher:
                             vendor=vendor,
                             product=product,
                             verified=True,
+                            required_version_components=max(required_count, 0),
                         )
                     )
 
