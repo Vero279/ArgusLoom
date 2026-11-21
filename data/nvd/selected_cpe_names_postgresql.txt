@@ -1,0 +1,3 @@
+cpe:2.3:a:postgresql:postgresql:14.10:*:*:*:*:*:*:*
+cpe:2.3:a:postgresql:postgresql:15.5:*:*:*:*:*:*:*
+cpe:2.3:a:postgresql:postgresql:16.1:*:*:*:*:*:*:*

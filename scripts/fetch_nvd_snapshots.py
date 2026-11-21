@@ -99,8 +99,8 @@ def main() -> None:
         if result.mode == "cpe_dictionary_keyword":
             mapping_path = args.mapping_table
             versions_path = args.candidate_versions
-            cpe_output = args.cpe_names_output or Path(
-                "data/nvd"
+            cpe_output = args.cpe_names_output or (
+                Path("data/nvd")
                 / f"candidate_cpe_names_{re.sub(r'[^a-z0-9._-]+', '_', result.query['keywordSearch'].casefold())}.txt"
             )
             if not mapping_path.is_absolute():

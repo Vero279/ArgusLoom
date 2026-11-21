@@ -1,10 +1,39 @@
 {
   "schema_version": 1,
-  "status": "pending_user_verification",
+  "status": "verified",
   "required_version_components": {
     "postgresql": 2,
     "nginx": 3,
     "python": 3
   },
-  "entries": []
+  "entries": [
+    {
+      "software_key": "nginx",
+      "part": "a",
+      "vendor": "f5",
+      "product": "nginx",
+      "verification_status": "verified",
+      "source_snapshot": "data/nvd/snapshots/v3/cpe/cpe_dictionary_keyword-f0f1b93b6643-page-0000.json",
+      "source_sha256": "9859135FE375941886AD044B3F820F5E25BB831852D9FA59AE9324E87BB21CBB",
+      "source_query": {
+        "keywordSearch": "nginx"
+      },
+      "source_cpe_name": "cpe:2.3:a:f5:nginx:0.1.0:*:*:*:*:*:*:*",
+      "title": "F5 NGINX 0.1.0"
+    },
+    {
+      "software_key": "postgresql",
+      "part": "a",
+      "vendor": "postgresql",
+      "product": "postgresql",
+      "verification_status": "verified",
+      "source_snapshot": "data/nvd/snapshots/v3/cpe/cpe_dictionary_keyword-bcaaa0398690-page-0000.json",
+      "source_sha256": "FDF8499934694A5D2C301E19861D3E1E59A50A809BAE80F9DFD65B27098C53C4",
+      "source_query": {
+        "keywordSearch": "postgresql"
+      },
+      "source_cpe_name": "cpe:2.3:a:postgresql:postgresql:-:*:*:*:*:*:*:*",
+      "title": "PostgreSQL"
+    }
+  ]
 }

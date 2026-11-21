@@ -1,5 +1,5 @@
 {
-  "manifest_version": 1,
+  "manifest_version": 3,
   "status": "incomplete",
   "notice": "The raw NVD record is committed. Existing ATT&CK/ATLAS JSON files remain fixtures without upstream release provenance; this manifest is not experiment-ready.",
   "snapshots": [
@@ -31,6 +31,210 @@
       "source": "Existing repository fixture; ATLAS release and retrieval version not recorded.",
       "format": "fixture-json",
       "sha256": "DA295170824A70F8687F32C84AE6BF19DB18AC924710CD80EE1C41B328F5605C",
+      "experiment_eligible": false
+    },
+    {
+      "path": "data/nvd/snapshots/v1/cpe/cpe_dictionary_keyword-f0f1b93b6643-page-0000.json",
+      "source": "https://services.nvd.nist.gov/rest/json/cpes/2.0?keywordSearch=nginx",
+      "format": "nvd-cpe-api-2.0",
+      "sha256": "ACA12B10B84434907649E0F03578D2598090192048EAB9BCDC122753957275F5",
+      "collection_type": "nvd-cpe-api",
+      "query_mode": "cpe_dictionary_keyword",
+      "query": {
+        "keywordSearch": "nginx"
+      },
+      "query_key": "f0f1b93b66432854c9e22322f5eea72dd67f7f31ef1b62da382531ff3d9648ef",
+      "manifest_version": 1,
+      "page_start_index": 0,
+      "total_results": 3404,
+      "results_per_page": 3404,
+      "experiment_eligible": false
+    },
+    {
+      "path": "data/nvd/snapshots/v1/cpe/cpe_dictionary_keyword-bcaaa0398690-page-0000.json",
+      "source": "https://services.nvd.nist.gov/rest/json/cpes/2.0?keywordSearch=postgresql",
+      "format": "nvd-cpe-api-2.0",
+      "sha256": "9302399E00763E68B75C2752E2C189919A4D3CEB6CEFBD04AC7E916BFB737B6D",
+      "collection_type": "nvd-cpe-api",
+      "query_mode": "cpe_dictionary_keyword",
+      "query": {
+        "keywordSearch": "postgresql"
+      },
+      "query_key": "bcaaa03986901155d151a02539fcc66e2fc4852ee77869a1a691a115a5c7d0d1",
+      "manifest_version": 1,
+      "page_start_index": 0,
+      "total_results": 1878,
+      "results_per_page": 1878,
+      "experiment_eligible": false
+    },
+    {
+      "path": "data/nvd/snapshots/v2/cpe/cpe_dictionary_keyword-f0f1b93b6643-page-0000.json",
+      "source": "https://services.nvd.nist.gov/rest/json/cpes/2.0?keywordSearch=nginx",
+      "format": "nvd-cpe-api-2.0",
+      "sha256": "BEB5A93411325C6D105470BB47FA3C2CEEE87DE82698F0AB446E4D3169095749",
+      "collection_type": "nvd-cpe-api",
+      "query_mode": "cpe_dictionary_keyword",
+      "query": {
+        "keywordSearch": "nginx"
+      },
+      "query_key": "f0f1b93b66432854c9e22322f5eea72dd67f7f31ef1b62da382531ff3d9648ef",
+      "manifest_version": 2,
+      "page_start_index": 0,
+      "total_results": 3404,
+      "results_per_page": 3404,
+      "experiment_eligible": false
+    },
+    {
+      "path": "data/nvd/snapshots/v2/cpe/cpe_dictionary_keyword-bcaaa0398690-page-0000.json",
+      "source": "https://services.nvd.nist.gov/rest/json/cpes/2.0?keywordSearch=postgresql",
+      "format": "nvd-cpe-api-2.0",
+      "sha256": "DFF2BD7972139A1A2971030780DB8A156CD917F7E33B6E6A15760A6A76C1C744",
+      "collection_type": "nvd-cpe-api",
+      "query_mode": "cpe_dictionary_keyword",
+      "query": {
+        "keywordSearch": "postgresql"
+      },
+      "query_key": "bcaaa03986901155d151a02539fcc66e2fc4852ee77869a1a691a115a5c7d0d1",
+      "manifest_version": 2,
+      "page_start_index": 0,
+      "total_results": 1878,
+      "results_per_page": 1878,
+      "experiment_eligible": false
+    },
+    {
+      "path": "data/nvd/snapshots/v3/cpe/cpe_dictionary_keyword-f0f1b93b6643-page-0000.json",
+      "source": "https://services.nvd.nist.gov/rest/json/cpes/2.0?keywordSearch=nginx",
+      "format": "nvd-cpe-api-2.0",
+      "sha256": "9859135FE375941886AD044B3F820F5E25BB831852D9FA59AE9324E87BB21CBB",
+      "collection_type": "nvd-cpe-api",
+      "query_mode": "cpe_dictionary_keyword",
+      "query": {
+        "keywordSearch": "nginx"
+      },
+      "query_key": "f0f1b93b66432854c9e22322f5eea72dd67f7f31ef1b62da382531ff3d9648ef",
+      "manifest_version": 3,
+      "page_start_index": 0,
+      "total_results": 3404,
+      "results_per_page": 3404,
+      "experiment_eligible": false
+    },
+    {
+      "path": "data/nvd/snapshots/v3/cpe/cpe_dictionary_keyword-bcaaa0398690-page-0000.json",
+      "source": "https://services.nvd.nist.gov/rest/json/cpes/2.0?keywordSearch=postgresql",
+      "format": "nvd-cpe-api-2.0",
+      "sha256": "FDF8499934694A5D2C301E19861D3E1E59A50A809BAE80F9DFD65B27098C53C4",
+      "collection_type": "nvd-cpe-api",
+      "query_mode": "cpe_dictionary_keyword",
+      "query": {
+        "keywordSearch": "postgresql"
+      },
+      "query_key": "bcaaa03986901155d151a02539fcc66e2fc4852ee77869a1a691a115a5c7d0d1",
+      "manifest_version": 3,
+      "page_start_index": 0,
+      "total_results": 1878,
+      "results_per_page": 1878,
+      "experiment_eligible": false
+    },
+    {
+      "path": "data/nvd/snapshots/v3/cve/cpe_name-b60cdc4bc602-page-0000.json",
+      "source": "https://services.nvd.nist.gov/rest/json/cves/2.0?cpeName=cpe%3A2.3%3Aa%3Af5%3Anginx%3A1.22.1%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A",
+      "format": "raw-nvd-api-2.0",
+      "sha256": "7818AF50306EBC36347639DB582A8B4CBE1DEBB99524E4DB385E584DB5FB1742",
+      "collection_type": "nvd-cve-api",
+      "query_mode": "cpe_name",
+      "query": {
+        "cpeName": "cpe:2.3:a:f5:nginx:1.22.1:*:*:*:*:*:*:*"
+      },
+      "query_key": "b60cdc4bc6022107dc5944f16348c73baddf525c99357765f2d0de53761a1d69",
+      "manifest_version": 3,
+      "page_start_index": 0,
+      "total_results": 2,
+      "results_per_page": 2,
+      "experiment_eligible": false
+    },
+    {
+      "path": "data/nvd/snapshots/v3/cve/cpe_name-707fa67fd001-page-0000.json",
+      "source": "https://services.nvd.nist.gov/rest/json/cves/2.0?cpeName=cpe%3A2.3%3Aa%3Af5%3Anginx%3A1.24.0%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A",
+      "format": "raw-nvd-api-2.0",
+      "sha256": "54221F2E9520DF7067892045C5708BAE182A6BD1E13E144E93B1B0A0DD921BDE",
+      "collection_type": "nvd-cve-api",
+      "query_mode": "cpe_name",
+      "query": {
+        "cpeName": "cpe:2.3:a:f5:nginx:1.24.0:*:*:*:*:*:*:*"
+      },
+      "query_key": "707fa67fd001ad36ef2e06c72308c3851d1506ff9c180445f89894bb478a00a5",
+      "manifest_version": 3,
+      "page_start_index": 0,
+      "total_results": 2,
+      "results_per_page": 2,
+      "experiment_eligible": false
+    },
+    {
+      "path": "data/nvd/snapshots/v3/cve/cpe_name-c59e20ea1249-page-0000.json",
+      "source": "https://services.nvd.nist.gov/rest/json/cves/2.0?cpeName=cpe%3A2.3%3Aa%3Af5%3Anginx%3A1.26.0%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A",
+      "format": "raw-nvd-api-2.0",
+      "sha256": "487A384AA8AE9CE006AFF58DE9D112BA78C7FA974F8EA01E7CE9E9E1364F0AD1",
+      "collection_type": "nvd-cve-api",
+      "query_mode": "cpe_name",
+      "query": {
+        "cpeName": "cpe:2.3:a:f5:nginx:1.26.0:*:*:*:*:*:*:*"
+      },
+      "query_key": "c59e20ea12498704e40754d19d83371561fa37635dc9264d8f28880463c09934",
+      "manifest_version": 3,
+      "page_start_index": 0,
+      "total_results": 1,
+      "results_per_page": 1,
+      "experiment_eligible": false
+    },
+    {
+      "path": "data/nvd/snapshots/v3/cve/cpe_name-b0bc9ab284de-page-0000.json",
+      "source": "https://services.nvd.nist.gov/rest/json/cves/2.0?cpeName=cpe%3A2.3%3Aa%3Apostgresql%3Apostgresql%3A14.10%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A",
+      "format": "raw-nvd-api-2.0",
+      "sha256": "896C1ACB0D0B35049C43F4EC1844905B4031DF31AAD00CCEF4E6CA9B6DDDC9DB",
+      "collection_type": "nvd-cve-api",
+      "query_mode": "cpe_name",
+      "query": {
+        "cpeName": "cpe:2.3:a:postgresql:postgresql:14.10:*:*:*:*:*:*:*"
+      },
+      "query_key": "b0bc9ab284de9e12024cd94768b1bb570d70fea7a318dabcf8f188847bd0d1b4",
+      "manifest_version": 3,
+      "page_start_index": 0,
+      "total_results": 47,
+      "results_per_page": 47,
+      "experiment_eligible": false
+    },
+    {
+      "path": "data/nvd/snapshots/v3/cve/cpe_name-8dc2dedf0113-page-0000.json",
+      "source": "https://services.nvd.nist.gov/rest/json/cves/2.0?cpeName=cpe%3A2.3%3Aa%3Apostgresql%3Apostgresql%3A15.5%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A",
+      "format": "raw-nvd-api-2.0",
+      "sha256": "0D56CA3348F04CA1A5210C50E0198E578F230CB0371F346AD86BBF5C6A3C2A14",
+      "collection_type": "nvd-cve-api",
+      "query_mode": "cpe_name",
+      "query": {
+        "cpeName": "cpe:2.3:a:postgresql:postgresql:15.5:*:*:*:*:*:*:*"
+      },
+      "query_key": "8dc2dedf01135f0be37f8eb7a0316f944f9cbe5e42c5123db987cafab4537213",
+      "manifest_version": 3,
+      "page_start_index": 0,
+      "total_results": 47,
+      "results_per_page": 47,
+      "experiment_eligible": false
+    },
+    {
+      "path": "data/nvd/snapshots/v3/cve/cpe_name-cc0b21e8c7d4-page-0000.json",
+      "source": "https://services.nvd.nist.gov/rest/json/cves/2.0?cpeName=cpe%3A2.3%3Aa%3Apostgresql%3Apostgresql%3A16.1%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A%3A%2A",
+      "format": "raw-nvd-api-2.0",
+      "sha256": "878677871923D45C62C7529A44633CF418F125D58FE0F90BA58CD3F0DA284328",
+      "collection_type": "nvd-cve-api",
+      "query_mode": "cpe_name",
+      "query": {
+        "cpeName": "cpe:2.3:a:postgresql:postgresql:16.1:*:*:*:*:*:*:*"
+      },
+      "query_key": "cc0b21e8c7d457c971b37fd8c36df960ee7df66235a4be50025c075d25c561da",
+      "manifest_version": 3,
+      "page_start_index": 0,
+      "total_results": 47,
+      "results_per_page": 47,
       "experiment_eligible": false
     }
   ]
