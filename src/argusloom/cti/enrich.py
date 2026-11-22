@@ -6,7 +6,7 @@ import re
 from copy import deepcopy
 from typing import Any, Protocol
 
-from argusloom.cti.mitre_loader import MITRELoader
+from argusloom.cti.mitre_loader import MAX_TECHNIQUES_PER_NODE, MITRELoader
 from argusloom.domain.enums import NodeKind
 from argusloom.domain.graph import Graph, GraphNode
 
@@ -81,7 +81,9 @@ class CTIEnricher:
             node.cves = sorted(
                 cve["id"] for cve in matched_cves if isinstance(cve.get("id"), str)
             )
-            node.mitre_techniques = sorted(matched_techniques)
+            node.mitre_techniques = sorted(matched_techniques)[
+                :MAX_TECHNIQUES_PER_NODE
+            ]
             node.cvss_max = (
                 max(float(cve["score"]) for cve in matched_cves)
                 if matched_cves

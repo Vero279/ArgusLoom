@@ -20,7 +20,10 @@ from argusloom.cti.cpe_matcher import (
     SoftwareIdentity,
     match_cve_to_inventory,
 )
-from argusloom.cti.snapshots import verify_snapshot_manifest
+from argusloom.cti.snapshots import (
+    verify_snapshot_manifest,
+    verify_derived_mitre_metadata,
+)
 
 BANDS = ("NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL")
 
@@ -109,7 +112,20 @@ def collect_preflight_blockers(repository_root: str | Path) -> list[str]:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         if manifest.get("status") != "ready":
             blockers.append("CTI snapshot manifest is not marked ready")
-        verify_snapshot_manifest(root, manifest_path)
+        try:
+            verify_snapshot_manifest(root, manifest_path)
+        except FileNotFoundError as exc:
+            if "Missing official MITRE data" in str(exc):
+                blockers.append(
+                    "Missing official MITRE data; run scripts/fetch_mitre_official.py locally."
+                )
+            else:
+                blockers.append(f"CTI snapshot verification failed: {exc}")
+            # Raw-only sources are separately handled above.
+        try:
+            verify_derived_mitre_metadata(root)
+        except FileNotFoundError as exc:
+            blockers.append(str(exc))
         if any(
             not entry.get("experiment_eligible", False)
             for entry in manifest["snapshots"]

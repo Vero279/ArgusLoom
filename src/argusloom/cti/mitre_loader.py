@@ -9,6 +9,9 @@ from pathlib import Path
 from typing import Any
 
 
+MAX_TECHNIQUES_PER_NODE = 10
+
+
 @dataclass(slots=True)
 class MITRETechnique:
     id: str
@@ -20,7 +23,7 @@ class MITRETechnique:
 
 
 class MITRELoader:
-    """Read technique fixtures once and provide deterministic keyword lookup."""
+    """Read derived technique fixtures once and provide deterministic keyword lookup."""
 
     def __init__(self, attack_path: Path, atlas_path: Path) -> None:
         self.attack_path = Path(attack_path)
@@ -29,6 +32,14 @@ class MITRELoader:
             self.attack_path, "attack"
         ) + self._load_file(self.atlas_path, "atlas")
         self._techniques.sort(key=lambda technique: (technique.id, technique.source))
+        override_path = attack_path.parent / "keyword_overrides.json"
+        self._overrides: dict[str, list[str]] = {}
+        if override_path.is_file():
+            payload = json.loads(override_path.read_text(encoding="utf-8"))
+            for technique_id, keywords in payload.get("overrides", {}).items():
+                self._overrides[str(technique_id)] = [
+                    str(keyword) for keyword in keywords
+                ]
 
     @staticmethod
     def _load_file(path: Path, source: str) -> list[MITRETechnique]:
@@ -39,7 +50,7 @@ class MITRELoader:
                 name=str(record["name"]),
                 tactic=str(record["tactic"]),
                 description=str(record["description"]),
-                keywords=[str(keyword) for keyword in record.get("keywords", [])],
+                keywords=[],
                 source=source,
             )
             for record in records
@@ -60,7 +71,12 @@ class MITRELoader:
         matches = []
         for technique in self._techniques:
             searchable = " ".join(
-                [technique.name, technique.description, *technique.keywords]
+                [
+                    technique.name,
+                    technique.tactic,
+                    *technique.keywords,
+                    *self._overrides.get(technique.id, []),
+                ]
             )
             if query_tokens & self._tokens(searchable):
                 matches.append(technique)

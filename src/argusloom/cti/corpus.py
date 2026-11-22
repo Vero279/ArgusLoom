@@ -18,12 +18,28 @@ from argusloom.domain.errors import NodeNotFound
 from argusloom.domain.graph import Graph
 from argusloom.rag.retriever import CTIDocument, CTIRetriever
 
-_EXCLUDED_PROMPT_INJECTION_IDS = {
-    "AML.T0051",
-    "AML.T0051.001",
-    "AML.T0054",
-    "AML.T0065",
-}
+def explicit_model_instruction_rejection(text: str) -> str | None:
+    """Reject records that directly instruct the model, but not topic descriptions."""
+    lowered = text.casefold()
+    explicit_phrases = (
+        "ignore previous instructions",
+        "disregard previous instructions",
+        "ignore all previous",
+        "disregard all prior",
+        "you are now",
+        "system prompt:",
+        "respond only",
+        "output only",
+        "do not follow",
+        "follow the instruction",
+    )
+    for phrase in explicit_phrases:
+        if phrase in lowered:
+            return (
+                "prompt-injection explicit-model-instruction rule: "
+                f"matched prohibited phrase {phrase!r}"
+            )
+    return None
 
 
 def _nvd_records(payload: dict[str, Any]) -> list[dict[str, Any]]:
@@ -76,7 +92,10 @@ def _nvd_records(payload: dict[str, Any]) -> list[dict[str, Any]]:
     return records
 
 
-def _mitre_records(payload: Any) -> list[dict[str, Any]]:
+def _mitre_records(
+    payload: Any,
+    rejected_documents: list[dict[str, str]] | None = None,
+) -> list[dict[str, Any]]:
     if isinstance(payload, list):
         objects = payload
     elif isinstance(payload, dict):
@@ -99,11 +118,19 @@ def _mitre_records(payload: Any) -> list[dict[str, Any]]:
         if not isinstance(external_id, str) or not isinstance(name, str):
             continue
         description = item.get("description", "")
-        combined_text = f"{name} {description}".casefold()
-        if external_id in _EXCLUDED_PROMPT_INJECTION_IDS or any(
-            phrase in combined_text
-            for phrase in ("prompt injection", "indirect prompt", "jailbreak")
-        ):
+        rejection = explicit_model_instruction_rejection(
+            f"{name} {description}"
+        )
+        if rejection:
+            if rejected_documents is not None:
+                rejected_documents.append(
+                    {
+                        "id": str(external_id),
+                        "name": str(name),
+                        "rule": "prompt-injection explicit-model-instruction rule",
+                        "reason": rejection,
+                    }
+                )
             continue
         records.append(
             {
@@ -121,6 +148,7 @@ def load_snapshot_corpus(
     manifest_path: str | Path,
     *,
     expected_count: int = 300,
+    rejection_report_path: str | Path | None = None,
 ) -> tuple[list[CTIDocument], str]:
     """Load exactly the eligible corpus described by a verified manifest."""
 
@@ -132,6 +160,7 @@ def load_snapshot_corpus(
     verified = verify_snapshot_manifest(root, manifest_file)
     documents: list[CTIDocument] = []
     seen_ids: set[str] = set()
+    rejected_documents: list[dict[str, str]] = []
 
     for snapshot in verified:
         if not snapshot.get("experiment_eligible"):
@@ -148,7 +177,7 @@ def load_snapshot_corpus(
         if isinstance(payload, dict) and "vulnerabilities" in payload:
             records = _nvd_records(payload)
         else:
-            records = _mitre_records(payload)
+            records = _mitre_records(payload, rejected_documents)
         for record in records:
             document_id = str(record["id"])
             if document_id in seen_ids:
@@ -184,6 +213,22 @@ def load_snapshot_corpus(
                     },
                 )
             )
+
+    if rejection_report_path is not None:
+        report_file = Path(rejection_report_path)
+        if not report_file.is_absolute():
+            report_file = root / report_file
+        report_file.parent.mkdir(parents=True, exist_ok=True)
+        report_bytes = (
+            json.dumps(
+                {"rejected_documents": rejected_documents},
+                ensure_ascii=False,
+                indent=2,
+                sort_keys=True,
+            ).encode("utf-8")
+            + b"\n"
+        )
+        report_file.write_bytes(report_bytes)
 
     if len(documents) != expected_count:
         raise ValueError(

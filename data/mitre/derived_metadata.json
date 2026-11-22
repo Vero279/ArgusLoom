@@ -1,0 +1,27 @@
+{
+  "attack.json": {
+    "source_name": "MITRE Enterprise ATT&CK",
+    "source_version": "20.1",
+    "source_url": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack-20.1.json",
+    "source_sha256": "539A843A7B53ED9749740B2123DDDAE3726B1A4831841C32ACA740B011B910B5",
+    "selection_rules": [
+      "Active techniques (not revoked and not deprecated) with x_mitre_platforms containing IaaS",
+      "Explicit additions: T1565.001, T1530, T1195",
+      "T1562 is replaced by the official revoked-by target; T1685 is narrower than T1562, not equivalent"
+    ],
+    "record_count": null,
+    "derived_sha256": "PENDING_FIRST_DERIVATION"
+  },
+  "atlas.json": {
+    "source_name": "MITRE ATLAS",
+    "source_version": "2026.10",
+    "source_url": "https://raw.githubusercontent.com/mitre-atlas/atlas-data/main/dist/v6/ATLAS-2026.10.yaml",
+    "source_sha256": "AC41EE9F99A47084BA5FDFC77AE83A28687E12390240FFFEB37DF7914FFE142D",
+    "selection_rules": [
+      "Techniques whose platforms include Generative AI or Agentic AI",
+      "Explicit additions: AML.T0064, AML.T0066, AML.T0070, AML.T0071"
+    ],
+    "record_count": null,
+    "derived_sha256": "PENDING_FIRST_DERIVATION"
+  }
+}

@@ -4,6 +4,50 @@
   "notice": "The raw NVD record is committed. Existing ATT&CK/ATLAS JSON files remain fixtures without upstream release provenance; this manifest is not experiment-ready.",
   "snapshots": [
     {
+      "path": "data/mitre/official/enterprise-attack-20.1.json",
+      "url": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack-20.1.json",
+      "source": "MITRE Enterprise ATT&CK",
+      "version": "20.1",
+      "retrieved_at_utc": "2026-11-22",
+      "format": "stix-2.1-bundle",
+      "sha256": "539A843A7B53ED9749740B2123DDDAE3726B1A4831841C32ACA740B011B910B5",
+      "stored_in_git": false,
+      "experiment_eligible": true
+    },
+    {
+      "path": "data/mitre/official/ATLAS-2026.10.yaml",
+      "url": "https://raw.githubusercontent.com/mitre-atlas/atlas-data/main/dist/v6/ATLAS-2026.10.yaml",
+      "source": "MITRE ATLAS",
+      "version": "2026.10",
+      "retrieved_at_utc": "2026-11-22",
+      "format": "atlas-yaml-format-6.1.0",
+      "sha256": "AC41EE9F99A47084BA5FDFC77AE83A28687E12390240FFFEB37DF7914FFE142D",
+      "stored_in_git": false,
+      "experiment_eligible": true
+    },
+    {
+      "path": "data/mitre/attack.json",
+      "url": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack-20.1.json",
+      "source": "MITRE Enterprise ATT&CK derived subset",
+      "version": "20.1",
+      "format": "derived-mitre-json",
+      "sha256": "PENDING_FIRST_DERIVATION",
+      "stored_in_git": true,
+      "derived_from": "data/mitre/official/enterprise-attack-20.1.json",
+      "experiment_eligible": true
+    },
+    {
+      "path": "data/mitre/atlas.json",
+      "url": "https://raw.githubusercontent.com/mitre-atlas/atlas-data/main/dist/v6/ATLAS-2026.10.yaml",
+      "source": "MITRE ATLAS derived subset",
+      "version": "2026.10",
+      "format": "derived-mitre-json",
+      "sha256": "PENDING_FIRST_DERIVATION",
+      "stored_in_git": true,
+      "derived_from": "data/mitre/official/ATLAS-2026.10.yaml",
+      "experiment_eligible": true
+    },
+    {
       "path": "data/nvd/CVE-2018-16603.json",
       "source": "https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2018-16603",
       "retrieved_at_utc": "2026-11-18",
@@ -17,20 +61,6 @@
       "source": "Existing repository fixture; upstream source and retrieval version not recorded.",
       "format": "fixture-json",
       "sha256": "05FAF4437CB6575F8A75654CE413FBC70AA92A8699D9C681685EAF885F35BC47",
-      "experiment_eligible": false
-    },
-    {
-      "path": "data/mitre/attack.json",
-      "source": "Existing repository fixture; ATT&CK release and retrieval version not recorded.",
-      "format": "fixture-json",
-      "sha256": "659C1D7A79A0805FB7AD0E536037C4CEE9E5F8026EEB5AF6407BE43A62D275A0",
-      "experiment_eligible": false
-    },
-    {
-      "path": "data/mitre/atlas.json",
-      "source": "Existing repository fixture; ATLAS release and retrieval version not recorded.",
-      "format": "fixture-json",
-      "sha256": "D6659B579193B35F079FFE486F50ED6C1F0253CC115C96733FCAE06D37AA7B0C",
       "experiment_eligible": false
     },
     {
