@@ -17,3 +17,9 @@ pytest-asyncio>=0.24.0
 black>=24.8.0
 ruff>=0.7.0
 pytest-cov>=5.0.0
+
+[experiments]
+boto3==1.35.99
+checkov==3.2.451
+codecarbon==2.8.1
+lm-polygraph==0.7.0

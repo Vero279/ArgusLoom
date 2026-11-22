@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "snapshot_sha256": "DBF5BCB918E726F84EC82BB361F86388C43F3C4E043B85A79B20AEE8742C03F2",
+  "profiles": {
+    "CVE-2025-23419": {
+      "severity": "LOW",
+      "base_score": 1.3,
+      "affected": false,
+      "fixed_version_boundary": {
+        "versionEndExcluding": "1.24.0"
+      }
+    },
+    "CVE-2024-10979": {
+      "severity": "MEDIUM",
+      "base_score": 5.8,
+      "affected": false,
+      "fixed_version_boundary": {
+        "versionEndExcluding": "16.1"
+      }
+    },
+    "CVE-2026-14664": {
+      "severity": "MEDIUM",
+      "base_score": 5.8,
+      "affected": false,
+      "fixed_version_boundary": {
+        "versionEndExcluding": "16.1"
+      }
+    },
+    "CVE-2026-14679": {
+      "severity": "MEDIUM",
+      "base_score": 5.2,
+      "affected": false,
+      "fixed_version_boundary": {
+        "versionEndExcluding": "16.1"
+      }
+    },
+    "CVE-2026-6479": {
+      "severity": "MEDIUM",
+      "base_score": 4.5,
+      "affected": false,
+      "fixed_version_boundary": {
+        "versionEndExcluding": "16.1"
+      }
+    },
+    "CVE-2026-6478": {
+      "severity": "LOW",
+      "base_score": 3.5,
+      "affected": false,
+      "fixed_version_boundary": {
+        "versionEndExcluding": "16.1"
+      }
+    }
+  }
+}
