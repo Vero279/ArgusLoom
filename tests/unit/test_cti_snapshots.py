@@ -14,7 +14,14 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_committed_cti_snapshot_hashes_verify() -> None:
     verified = verify_snapshot_manifest(ROOT, "data/cti_snapshot_manifest.json")
 
-    assert len(verified) == 4
+    required = {
+        "data/fixtures/cves.json",
+        "data/mitre/attack.json",
+        "data/mitre/atlas.json",
+        "data/nvd/CVE-2018-16603.json",
+        "data/nvd/snapshots/v3/cve/cve_ids-3db1efccae05-page-0000.json",
+    }
+    assert required <= {item["path"] for item in verified}
     assert all(item["verified_sha256"] == item["sha256"].upper() for item in verified)
 
 

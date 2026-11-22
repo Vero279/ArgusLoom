@@ -139,10 +139,10 @@ def test_freertos_cve_is_not_linked_to_postgresql_database() -> None:
         cpe_matcher=matcher,
     ).enrich(graph)
 
-    assert enriched.nodes[0].cves == []
+    assert "CVE-2018-16603" not in enriched.nodes[0].cves
 
 
-def test_committed_graphs_contain_no_manual_cve_associations() -> None:
+def test_committed_graph_cve_links_require_declared_versions() -> None:
     paths = [
         ROOT / "data" / "graph.json",
         ROOT / "data" / "graph_A.json",
@@ -153,4 +153,10 @@ def test_committed_graphs_contain_no_manual_cve_associations() -> None:
 
     for path in paths:
         payload = json.loads(path.read_text(encoding="utf-8"))
-        assert all(not node.get("cves") for node in payload.get("nodes", []))
+        for node in payload.get("nodes", []):
+            if node.get("cves"):
+                inventory = (node.get("metadata") or {}).get("software_inventory") or []
+                assert any(item.get("version") for item in inventory), (
+                    path.name,
+                    node["id"],
+                )

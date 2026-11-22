@@ -1,0 +1,3 @@
+data/mitre/*.json text eol=lf
+data/fixtures/cves.json text eol=lf
+data/nvd/** -text

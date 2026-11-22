@@ -24,5 +24,5 @@ def test_context_format_contains_document_provenance() -> None:
 
 
 def test_context_format_rejects_missing_identifiers() -> None:
-    with pytest.raises(ValueError, match="string id and text"):
+    with pytest.raises(TypeError, match="string id and text"):
         format_retrieved_context([{"text": "no identifier"}])

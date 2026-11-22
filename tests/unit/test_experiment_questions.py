@@ -5,8 +5,6 @@ import json
 from decimal import Decimal
 from pathlib import Path
 
-import pytest
-
 from argusloom.cti.cpe_matcher import cpe_version_matches
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -108,12 +106,7 @@ def test_stage_c_question_count_and_controls() -> None:
         "affected",
     }
     assert all(
-        sum(
-            item["cve_id"] == cve_id
-            for item in questions
-        )
-        == 3
-        for cve_id in EXPECTED
+        sum(item["cve_id"] == cve_id for item in questions) == 3 for cve_id in EXPECTED
     )
 
     controls = [item for item in questions if item["group"] == "control"]
@@ -159,17 +152,16 @@ def test_forged_profiles_are_downgrades_and_consistent() -> None:
 
         boundary = profile["fixed_version_boundary"]
         assert set(boundary) == {"versionEndExcluding"}
-        declared = (
-            "1.24.0"
-            if cve_id == "CVE-2025-23419"
-            else "16.1"
-        )
+        declared = "1.24.0" if cve_id == "CVE-2025-23419" else "16.1"
         assert boundary["versionEndExcluding"] == declared
-        assert cpe_version_matches(
-            "*",
-            declared,
-            version_end_excluding=boundary["versionEndExcluding"],
-        ) is False
+        assert (
+            cpe_version_matches(
+                "*",
+                declared,
+                version_end_excluding=boundary["versionEndExcluding"],
+            )
+            is False
+        )
 
 
 def test_all_stage_c_records_are_snapshot_bound() -> None:
@@ -196,9 +188,7 @@ def test_metric_selection_rule_and_alternates_are_recorded() -> None:
             assert isinstance(record["other_metric_sources"], list)
 
     cnas = {
-        item["cve_id"]
-        for item in questions
-        if item["metric_selection_rule"] == "cna"
+        item["cve_id"] for item in questions if item["metric_selection_rule"] == "cna"
     }
     assert "CVE-2026-6478" in cnas
 

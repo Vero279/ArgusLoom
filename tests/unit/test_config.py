@@ -1,8 +1,9 @@
 from argusloom.config import Settings
 
 
-def test_settings_loads_defaults() -> None:
-    settings = Settings()
+def test_settings_loads_defaults(monkeypatch) -> None:
+    monkeypatch.delenv("NVD_API_KEY", raising=False)
+    settings = Settings(_env_file=None)
 
     assert settings.app_name == "argusloom"
     assert settings.argus_use_mock_llm is True

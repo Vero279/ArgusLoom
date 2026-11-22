@@ -50,7 +50,7 @@ def test_checkov_findings_are_normalized_and_annotate_matching_node() -> None:
 def test_checkov_parser_rejects_malformed_failed_checks() -> None:
     try:
         parse_checkov_findings({"results": {"failed_checks": {}}})
-    except ValueError as exc:
+    except TypeError as exc:
         assert "failed_checks must be a list" in str(exc)
     else:
         raise AssertionError("Expected malformed Checkov results to fail")

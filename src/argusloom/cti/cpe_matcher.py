@@ -490,7 +490,9 @@ class SnapshotCPEMatcher:
                     product,
                 ):
                     required_count = required_components.get(software_key)
-                    if not isinstance(required_count, int) or isinstance(required_count, bool):
+                    if not isinstance(required_count, int) or isinstance(
+                        required_count, bool
+                    ):
                         required_count = 0
                     mappings.append(
                         CPEProductMapping(

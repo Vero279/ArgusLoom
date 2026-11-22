@@ -16,21 +16,21 @@
       "path": "data/fixtures/cves.json",
       "source": "Existing repository fixture; upstream source and retrieval version not recorded.",
       "format": "fixture-json",
-      "sha256": "120828ABEC389F8C017E45FF2C46F32BC68930E6CCAF0D5F08F1C0A1A086DDB3",
+      "sha256": "05FAF4437CB6575F8A75654CE413FBC70AA92A8699D9C681685EAF885F35BC47",
       "experiment_eligible": false
     },
     {
       "path": "data/mitre/attack.json",
       "source": "Existing repository fixture; ATT&CK release and retrieval version not recorded.",
       "format": "fixture-json",
-      "sha256": "258355D1D10D121F40B3BC173E7D39B4FB6A8CEE4D7EA26DBD8D8084D417FAD3",
+      "sha256": "659C1D7A79A0805FB7AD0E536037C4CEE9E5F8026EEB5AF6407BE43A62D275A0",
       "experiment_eligible": false
     },
     {
       "path": "data/mitre/atlas.json",
       "source": "Existing repository fixture; ATLAS release and retrieval version not recorded.",
       "format": "fixture-json",
-      "sha256": "DA295170824A70F8687F32C84AE6BF19DB18AC924710CD80EE1C41B328F5605C",
+      "sha256": "D6659B579193B35F079FFE486F50ED6C1F0253CC115C96733FCAE06D37AA7B0C",
       "experiment_eligible": false
     },
     {

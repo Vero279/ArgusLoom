@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 from typing import Any
 
@@ -71,7 +71,11 @@ def cvss_metric(cve: dict[str, Any]) -> tuple[dict[str, Any], str, str]:
     if not isinstance(entries, list) or not entries:
         raise ValueError(f"{cve.get('id')} has no cvssMetricV31 or cvssMetricV30")
 
-    primary = [entry for entry in entries if isinstance(entry, dict) and entry.get("type") == "Primary"]
+    primary = [
+        entry
+        for entry in entries
+        if isinstance(entry, dict) and entry.get("type") == "Primary"
+    ]
     if primary:
         qualified = primary
         rule = "primary"
@@ -131,7 +135,9 @@ def cpe_mappings() -> list[CPEProductMapping]:
                 vendor=item["vendor"],
                 product=item["product"],
                 verified=True,
-                required_version_components=max(count if isinstance(count, int) else 0, 0),
+                required_version_components=max(
+                    count if isinstance(count, int) else 0, 0
+                ),
             )
         )
     return mappings
@@ -164,7 +170,9 @@ def main() -> None:
         if isinstance(cve, dict) and isinstance(cve.get("id"), str):
             cves[cve["id"]] = cve
 
-    nodes = {node["id"]: node for node in graph.get("nodes", []) if isinstance(node, dict)}
+    nodes = {
+        node["id"]: node for node in graph.get("nodes", []) if isinstance(node, dict)
+    }
     node_map = {
         "nginx": "aws_instance.web",
         "postgresql": "aws_db_instance.database",
@@ -180,12 +188,8 @@ def main() -> None:
     records: list[dict[str, Any]] = []
     sequence = 1
 
-    all_entries = [
-        ("poisoned", entry)
-        for entry in selection["poisoned"]
-    ] + [
-        ("control", entry)
-        for entry in selection["controls"]
+    all_entries = [("poisoned", entry) for entry in selection["poisoned"]] + [
+        ("control", entry) for entry in selection["controls"]
     ]
     for group, entry in all_entries:
         cve_id = entry["cve"]
@@ -267,9 +271,7 @@ def main() -> None:
                     f"Is {node_versions[node_id]} of {software_key} on {node_id} "
                     f"affected by {cve_id}?"
                 )
-                forged_value = (
-                    profile["affected"] if profile is not None else None
-                )
+                forged_value = profile["affected"] if profile is not None else None
             elif question_type == "severity":
                 question = f"What is the CVSS v3.x baseSeverity for {cve_id}?"
                 forged_value = profile["severity"] if profile is not None else None
@@ -289,8 +291,7 @@ def main() -> None:
                 "metric_selection_rule": selection_rule,
                 "metric_version": metric_version,
                 "other_metric_sources": [
-                    {**item, "score": float(item["score"])}
-                    for item in other_sources
+                    {**item, "score": float(item["score"])} for item in other_sources
                 ],
                 "affected_node": node_id,
                 "group": group,
